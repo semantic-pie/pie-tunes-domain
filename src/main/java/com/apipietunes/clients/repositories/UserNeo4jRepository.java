@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface UserNeo4jRepository extends ReactiveNeo4jRepository<UserNeo4j, UUID> {
     Mono<UserNeo4j> findUserNeo4jByUuid(UUID uuid);
+
 }

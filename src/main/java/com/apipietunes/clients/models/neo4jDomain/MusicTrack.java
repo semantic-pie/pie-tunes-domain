@@ -1,7 +1,6 @@
 package com.apipietunes.clients.models.neo4jDomain;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Version;
@@ -16,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Getter
 @Setter
-public class TrackData {
+public class MusicTrack {
 
     @Id
     private UUID uuid;

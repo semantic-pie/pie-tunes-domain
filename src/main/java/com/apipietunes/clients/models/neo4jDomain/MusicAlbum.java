@@ -32,7 +32,7 @@ public class MusicAlbum {
     private int yearOfRecord;
 
     @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
-    private Set<TrackData> tracksInAlbum;
+    private Set<MusicTrack> tracksInAlbum;
 
     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
     private MusicBand musicBand;

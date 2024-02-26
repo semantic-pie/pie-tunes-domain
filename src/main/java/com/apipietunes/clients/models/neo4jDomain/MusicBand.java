@@ -30,7 +30,7 @@ public class MusicBand {
     private String description;
 
     @Relationship(type = "HAS_TRACK", direction = Relationship.Direction.OUTGOING)
-    private Set<TrackData> allTracksInBand;
+    private Set<MusicTrack> allTracksInBand;
 
     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.OUTGOING)
     private Set<MusicAlbum> allAlbumsInBand;

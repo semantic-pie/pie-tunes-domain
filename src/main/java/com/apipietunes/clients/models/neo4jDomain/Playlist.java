@@ -29,7 +29,7 @@ public class Playlist {
     private String name;
 
     @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
-    private Set<TrackData> tracks;
+    private Set<MusicTrack> tracks;
 
     @Relationship(type = "HAS_PLAYLIST", direction = Relationship.Direction.INCOMING)
     private UserNeo4j playlistOwner;
