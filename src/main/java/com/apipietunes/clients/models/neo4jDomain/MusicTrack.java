@@ -3,7 +3,10 @@ package com.apipietunes.clients.models.neo4jDomain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
+
 import org.springframework.data.annotation.Version;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -18,6 +21,7 @@ import java.util.UUID;
 public class MusicTrack {
 
     @Id
+    @GeneratedValue
     private UUID uuid;
 
     @Version
@@ -31,8 +35,8 @@ public class MusicTrack {
 
     private Long lengthInMilliseconds;
 
-    @Relationship(type = "CONTAINS", direction = Relationship.Direction.INCOMING)
-    private Playlist playlist;
+    // @Relationship(type = "CONTAINS", direction = Relationship.Direction.INCOMING)
+    // private Playlist playlist;
 
     @Relationship(type = "IN_GENRE", direction = Relationship.Direction.OUTGOING)
     private Set<MusicGenre> genres;

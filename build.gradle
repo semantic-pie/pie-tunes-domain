@@ -18,6 +18,11 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-devtools'
+	implementation 'com.mpatric:mp3agic:0.9.1'
+	implementation 'org:jaudiotagger:2.0.3'
+	implementation 'io.minio:minio:8.5.8'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	compileOnly 'org.projectlombok:lombok'
