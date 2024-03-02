@@ -1,10 +1,8 @@
 package com.apipietunes.clients.services;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ import com.apipietunes.clients.repositories.MusicAlbumRepository;
 import com.apipietunes.clients.repositories.MusicBandRepository;
 import com.apipietunes.clients.repositories.MusicGenreRepository;
 import com.apipietunes.clients.repositories.TrackMetadatRepository;
-import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
+import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
 
 import io.minio.MinioClient;
@@ -43,10 +41,10 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     private final MusicAlbumRepository musicAlbumRepository;
 
     private final TrackMetadataParser parser;
-    
 
 
     @Override
+    @Transactional
     public Mono<MusicTrack> save(FilePart filePart) {
         try {
             MusicTrack musicTrack = parser.parse(filePart);
@@ -59,7 +57,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                         String errorMessage = String.format("Track with name '%s' and artist '%s' already exists.",
                                 existingTrack.getTitle(), existingTrack.getMusicBand());
                         log.info(errorMessage);
-                        return Mono.error(new UserAlreadyExistsException(errorMessage));
+                        return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
                     .switchIfEmpty(saveNeo4j(musicTrack))
                     .cast(MusicTrack.class);
@@ -72,68 +70,44 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
 
     @Transactional
-    private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
+    protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
-        // musicTrack.setUuid(UUID.randomUUID());
-    
-        return trackMetadatRepository.save(musicTrack)
-                .flatMap(persistedTrack -> {
-                    MusicBand musicBand = musicTrack.getMusicBand();
-                    MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
-                    Set<MusicGenre> musicGenres = musicTrack.getGenres();
-    
-                    Mono<MusicBand> bandMono = musicBandRepository.save(musicBand);
-                            // .existsByName(musicBand.getName())
-                            // .flatMap(exsits -> {
-                            //     if (exsits) {
-                            //         log.info("FUUUUUCK FIND");
-                            //         return musicBandRepository.findByName(musicBand.getName());
-                            //     } else {
-                            //         log.info("FUUUUUCK SAVE");
-                            //         return musicBandRepository.save(musicBand);
-                            //     }
-                            // });
-                            // .findByName(musicBand.getName())
-                            // .switchIfEmpty(Mono.defer(() -> {
-                            //     log.info("CREATING NEW ENTITY");
-                            //     musicBand.setUuid(UUID.randomUUID());
-                            //     return musicBandRepository.save(musicBand);
-                            // }));
-                    // log.info("FFFFF");
-                    // log.info("BAND: {}", bandMono);
-    
-                    Mono<MusicAlbum> albumMono = musicAlbumRepository.save(musicAlbum);
-                            // .findByName(musicAlbum.getName())
-                            // .switchIfEmpty(Mono.defer(() -> {
-                            //     musicAlbum.setUuid(UUID.randomUUID());
-                            //     return musicAlbumRepository.save(musicAlbum);
-                            // }));
-                    
-                    // log.info("ALBUM: {}", albumMono.block());
-    
-                    Flux<MusicGenre> genreFlux = musicGenreRepository.saveAll(musicGenres);
-                    // Flux<MusicGenre> genreFlux = Flux.fromIterable(musicGenres).
-                            // .flatMap(g -> musicGenreRepository.findByName(g.getName())
-                            //         .switchIfEmpty(Mono.defer(() -> {
-                            //             g.setUuid(UUID.randomUUID());
-                            //             return musicGenreRepository.save(g);
-                            //         })));
-                        
-                    // log.info("GENRE: {}", genreFlux.collectList());
-                    
-    
-                    return Mono.zip(bandMono, albumMono, genreFlux.collectList())
-                            .flatMap(tuple -> {
-                                persistedTrack.setMusicBand(tuple.getT1());
-                                persistedTrack.setMusicAlbum(tuple.getT2());
-                                persistedTrack.setGenres(new HashSet<>(tuple.getT3()));
-                                return trackMetadatRepository.save(persistedTrack);
-                            });
+
+        MusicBand musicBand = musicTrack.getMusicBand();
+        MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
+        Set<MusicGenre> musicGenres = musicTrack.getGenres();
+
+
+        Mono<MusicBand> bandMono = musicBandRepository
+                .existsByName(musicBand.getName())
+                .flatMap(exsits -> {
+                    if (exsits) {
+                        log.info("FUUUUUCK FIND");
+                        return musicBandRepository.findByName(musicBand.getName());
+                    } else {
+                        log.info("FUUUUUCK SAVE");
+                        return musicBandRepository.save(musicBand);
+                    }
                 });
-                // .flatMap(track -> trackMetadatRepository.findByUuid(musicTrack.getUuid()));
+
+        Mono<MusicAlbum> albumMono = musicAlbumRepository
+                .findByName(musicAlbum.getName())
+                .switchIfEmpty(Mono.defer(() -> musicAlbumRepository.save(musicAlbum)));
+
+        Flux<MusicGenre> genreFlux = Flux.fromIterable(musicGenres)
+                .flatMap(g -> musicGenreRepository.findByName(g.getName())
+                        .switchIfEmpty(Mono.defer(() -> musicGenreRepository.save(g))));
+
+        return Mono.zip(bandMono, albumMono, genreFlux.collectList())
+                .flatMap(tuple -> {
+                    musicTrack.setMusicBand(tuple.getT1());
+                    musicTrack.setMusicAlbum(tuple.getT2());
+                    musicTrack.setGenres(new HashSet<>(tuple.getT3()));
+                    return trackMetadatRepository.save(musicTrack);
+                });
     }
 
-    
+
     // @Transactional
     // private Mono<MusicTrack> saveNeo4jBlock(MusicTrack musicTrack) {
     //     log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
@@ -158,7 +132,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     //                 return musicBandRepository.save(musicBand);
     //             }))
     //             .block();
-                
+
     //     MusicAlbum album = musicAlbumRepository
     //             .findByName(musicBand.getName())
     //             .switchIfEmpty(Mono.defer(() -> {

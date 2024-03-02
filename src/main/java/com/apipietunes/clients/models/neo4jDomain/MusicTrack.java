@@ -35,8 +35,8 @@ public class MusicTrack {
 
     private Long lengthInMilliseconds;
 
-    // @Relationship(type = "CONTAINS", direction = Relationship.Direction.INCOMING)
-    // private Playlist playlist;
+     @Relationship(type = "CONTAINS", direction = Relationship.Direction.INCOMING)
+     private Playlist playlist;
 
     @Relationship(type = "IN_GENRE", direction = Relationship.Direction.OUTGOING)
     private Set<MusicGenre> genres;

@@ -2,10 +2,7 @@ package com.apipietunes.clients.utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,7 +36,7 @@ public class TrackMetadataParser {
             MusicAlbum musicAlbum = parseMusicAlbum(mp3file, id3v2);
             MusicBand musicBand = parseMusicBand(mp3file, id3v2);
             Set<MusicGenre> musicGenre = parseMusicGenre(mp3file, id3v2);
-    
+
             musicTrack.setMusicAlbum(musicAlbum);
             musicTrack.setMusicBand(musicBand);
             musicTrack.setGenres(musicGenre);

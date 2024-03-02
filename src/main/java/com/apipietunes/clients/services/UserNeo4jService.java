@@ -2,12 +2,11 @@ package com.apipietunes.clients.services;
 
 import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
 import com.apipietunes.clients.repositories.UserNeo4jRepository;
-import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
+import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
@@ -38,7 +37,7 @@ public class UserNeo4jService {
                                 .flatMap(existingUser -> {
                                     String errorMessage = String.format("User with uuid '%s' already exists.", user.getUuid());
                                     log.info(errorMessage);
-                                    return Mono.error(new UserAlreadyExistsException(errorMessage));
+                                    return Mono.error(new NodeAlreadyExists(errorMessage));
                                 })
                                 .switchIfEmpty(Mono.defer(() -> {
                                     Mono<UserNeo4j> toSave = userNeo4jRepository.save(user);
