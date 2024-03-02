@@ -1,8 +1,10 @@
 package com.apipietunes.clients.services;
 
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.Set;
-import java.util.UUID;
 
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
@@ -11,9 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
 import com.apipietunes.clients.models.neo4jDomain.MusicBand;
 import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
-// import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
-// import com.apipietunes.clients.models.neo4jDomain.MusicBand;
-// import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
 import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 import com.apipietunes.clients.repositories.MusicAlbumRepository;
 import com.apipietunes.clients.repositories.MusicBandRepository;
@@ -42,6 +41,18 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
     private final TrackMetadataParser parser;
 
+    @Override
+    public Mono<Void> saveAll(List<FilePart> trackFiles) {
+        Queue<FilePart> tracksQueue = new LinkedList<>(trackFiles);
+        return recursiveSave(save(tracksQueue.remove()), tracksQueue).then(Mono.empty());
+    }
+
+    private Mono<MusicTrack> recursiveSave(Mono<MusicTrack> track, Queue<FilePart> files) {
+        if (files.size() > 0)
+            return track.flatMap(t -> recursiveSave(save(files.remove()), files));
+        else
+            return track;
+    }
 
     @Override
     @Transactional
@@ -68,7 +79,6 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
         }
     }
 
-
     @Transactional
     protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
@@ -77,18 +87,9 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
         MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
         Set<MusicGenre> musicGenres = musicTrack.getGenres();
 
-
         Mono<MusicBand> bandMono = musicBandRepository
-                .existsByName(musicBand.getName())
-                .flatMap(exsits -> {
-                    if (exsits) {
-                        log.info("FUUUUUCK FIND");
-                        return musicBandRepository.findByName(musicBand.getName());
-                    } else {
-                        log.info("FUUUUUCK SAVE");
-                        return musicBandRepository.save(musicBand);
-                    }
-                });
+                .findByName(musicBand.getName())
+                .switchIfEmpty(Mono.defer(() -> musicBandRepository.save(musicBand)));
 
         Mono<MusicAlbum> albumMono = musicAlbumRepository
                 .findByName(musicAlbum.getName())
@@ -107,99 +108,4 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                 });
     }
 
-
-    // @Transactional
-    // private Mono<MusicTrack> saveNeo4jBlock(MusicTrack musicTrack) {
-    //     log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
-
-    //     musicTrack.setUuid(UUID.randomUUID());
-
-    //     MusicBand musicBand = musicTrack.getMusicBand();
-    //     MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
-    //     Set<MusicGenre> musicGenres = musicTrack.getGenres();
-
-    //     MusicTrack persistedTrack = trackMetadatRepository.save(musicTrack).block();
-    //     log.info("before: {}", persistedTrack);
-
-
-    //     // MusicBand d = musicBandRepository.findByName(musicBand.getName()).block();
-    //     // log.info("TEEEEEST TEEEEEAT ________________ {}", d);
-
-    //     MusicBand band = musicBandRepository
-    //             .findByName(musicBand.getName())
-    //             .switchIfEmpty(Mono.defer(() -> {
-    //                 musicBand.setUuid(UUID.randomUUID());
-    //                 return musicBandRepository.save(musicBand);
-    //             }))
-    //             .block();
-
-    //     MusicAlbum album = musicAlbumRepository
-    //             .findByName(musicBand.getName())
-    //             .switchIfEmpty(Mono.defer(() -> {
-    //                 musicAlbum.setUuid(UUID.randomUUID());
-    //                 return musicAlbumRepository.save(musicAlbum);
-    //             }))
-    //             .block();
-
-    //     Set<MusicGenre> genres = musicGenres.stream()
-    //             .map(g -> musicGenreRepository.findByName(g.getName())
-    //                     .switchIfEmpty(Mono.defer(() -> {
-    //                         g.setUuid(UUID.randomUUID());
-    //                         return musicGenreRepository.save(g);
-    //                     })).block())
-    //             .collect(Collectors.toSet());
-
-    //     persistedTrack.setMusicBand(band);
-    //     persistedTrack.setMusicAlbum(album);
-    //     persistedTrack.setGenres(genres);
-    //     persistedTrack.setUuid(musicTrack.getUuid());
-
-    //     log.info("after: {}", persistedTrack);
-
-    //     // musicTrack.setUuid(UUID.randomUUID());
-
-    //     return trackMetadatRepository.save(persistedTrack);
-    // }
-
-    // @Transactional
-    // private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
-    // log.info("Save track: {} - {}", musicTrack.getTitle(),
-    // musicTrack.getMusicBand().getName());
-    // UUID uuid = UUID.randomUUID();
-    // musicTrack.setUuid(uuid);
-
-    // MusicBand musicBand = musicTrack.getMusicBand();
-    // Set<MusicGenre> musicGenres = musicTrack.getGenres();
-    // return trackMetadatRepository.save(musicTrack)
-    // .flatMap(track -> musicBandRepository.findByName(musicBand.getName())
-    // .switchIfEmpty(musicBandRepository.save(musicBand))
-    // .flatMap(band -> Mono.just(musicGenres)
-    // .flatMap(resolverGenres(musicGenres)
-    // .flatMap((genres) -> {
-
-    // track.setUuid(uuid);
-    // track.setMusicBand(band);
-    // track.setGenres(genres);
-    // return trackMetadatRepository.save(track);
-    // }))));
-    // }
-
-    // private Mono<Set<MusicGenre>> resolverGenres(Set<MusicGenre> genres) {
-    // return Mono.empty();
-    // }
 }
-// return Mono.defer(
-// () -> musicBandRepository.save(musicTrack.getMusicBand()))
-// .flatMap(band -> musicGenreRepository.saveAll(musicTrack.getGenres()).next())
-// .flatMap(v -> trackMetadatRepository.save(musicTrack));
-
-// .flatMap(band -> Mono.just(musicGenres)
-// .flatMap(g -> g.stream()
-// .flatMap(g ->
-// musicGenreRepository.findByName(g.getName()).switchIfEmpty(musicGenreRepository.save(g)).toList())
-// .flatMap((genres) -> {
-// track.setUuid(uuid);
-// track.setMusicBand(band);
-// track.setGenres(new HashSet<>(genres));
-// return trackMetadatRepository.save(track);
-// }))));

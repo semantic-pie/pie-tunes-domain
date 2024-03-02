@@ -23,10 +23,8 @@ public class TrackLoaderController {
 
   @PostMapping("/api/track-loader/upload")
   public Mono<String> handleFileUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
-    log.info("/api/track-loader/upload");
-    return filePartFlux
-        .flatMap(trackLoaderService::save)
-        .collectList()
+    return filePartFlux.collectList()
+        .flatMap(trackLoaderService::saveAll)
         .then(Mono.just("File uploaded successfully"));
   }
 }

@@ -19,7 +19,6 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 
-
 @Component
 public class TrackMetadataParser {
 
@@ -63,7 +62,10 @@ public class TrackMetadataParser {
         MusicAlbum musicAlbum = new MusicAlbum();
 
         musicAlbum.setName(id3v2.getAlbum());
-        musicAlbum.setYearOfRecord(Integer.parseInt(id3v2.getYear()));
+        try {
+            musicAlbum.setYearOfRecord(Integer.parseInt(id3v2.getYear()));
+        } catch (RuntimeException ex) {
+        }
 
         return musicAlbum;
     }
@@ -76,7 +78,7 @@ public class TrackMetadataParser {
         return musicBand;
     }
 
-    private Set<MusicGenre> parseMusicGenre(Mp3File file, ID3v2 id3v2) {        
+    private Set<MusicGenre> parseMusicGenre(Mp3File file, ID3v2 id3v2) {
         return splitGenres(id3v2.getGenreDescription()).map(this::toMusicGenre).collect(Collectors.toSet());
     }
 
@@ -89,7 +91,6 @@ public class TrackMetadataParser {
     private Stream<String> splitGenres(String rowGenres) {
         return Arrays.stream(rowGenres.split("/")).map(this::unifySpaces).map(String::toLowerCase);
     }
-
 
     private String unifySpaces(String genre) {
         return genre
