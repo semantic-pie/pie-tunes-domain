@@ -37,9 +37,9 @@ public class MusicAlbum {
     @Nullable
     private int yearOfRecord;
 
-     @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
-     private Set<MusicTrack> tracksInAlbum;
+    //  @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
+    //  private Set<MusicTrack> tracksInAlbum;
 
-     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
-     private MusicBand musicBand;
+    //  @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
+    //  private MusicBand musicBand;
 }

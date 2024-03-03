@@ -1,11 +1,15 @@
 package com.apipietunes.clients.services;
 
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +25,22 @@ import com.apipietunes.clients.repositories.TrackMetadatRepository;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
 
+import io.minio.GetObjectArgs;
+import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
-
-import lombok.AllArgsConstructor;
+import io.minio.PutObjectArgs;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackLoaderServiceImpl implements TrackLoaderService {
+
+    @Value("${minio.bucket}")
+    public String BUCKET_NAME;
 
     private final MinioClient minioClient;
     private final TrackMetadatRepository trackMetadatRepository;
@@ -70,7 +79,9 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                         log.info(errorMessage);
                         return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
-                    .switchIfEmpty(saveNeo4j(musicTrack))
+                    .switchIfEmpty(
+                            saveNeo4j(musicTrack)
+                                    .flatMap(persistedTrack -> saveMinio(persistedTrack, filePart)))
                     .cast(MusicTrack.class);
 
             return track;
@@ -80,7 +91,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     }
 
     @Transactional
-    protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
+    private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
 
         MusicBand musicBand = musicTrack.getMusicBand();
@@ -106,6 +117,42 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                     musicTrack.setGenres(new HashSet<>(tuple.getT3()));
                     return trackMetadatRepository.save(musicTrack);
                 });
+    }
+
+    private Mono<MusicTrack> saveMinio(MusicTrack musicTrack, FilePart file) {
+        String contentType = file.headers().getContentType().toString();
+        String filename = UUID.randomUUID().toString();
+
+        return DataBufferUtils.join(file.content())
+                .flatMap(dataBuffer -> {
+                    log.info("save to minio '{}' : '{}'", musicTrack.getTitle(), filename);
+
+                    try (InputStream inputStream = dataBuffer.asInputStream()) {
+                        return Mono.just(minioClient.putObject(
+                                PutObjectArgs.builder()
+                                        .bucket(BUCKET_NAME)
+                                        .object(filename)
+                                        .contentType(contentType)
+                                        .stream(inputStream, inputStream.available(), -1)
+                                        .build()))
+                                .flatMap((ignore) -> Mono.just(musicTrack));
+                    } catch (Exception ex) {
+                        return Mono.empty();
+                    }
+                });
+    }
+
+    public Mono<GetObjectResponse> load(String id) {
+        try {
+            return Mono.just(minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(BUCKET_NAME)
+                            .object(id)
+                            .build()));
+        } catch (Exception ex) {
+            return Mono.empty();
+        }
+
     }
 
 }
