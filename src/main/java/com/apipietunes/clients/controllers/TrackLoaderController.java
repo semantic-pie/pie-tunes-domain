@@ -25,6 +25,6 @@ public class TrackLoaderController {
   public Mono<String> handleFileUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
     return filePartFlux.collectList()
         .flatMap(trackLoaderService::saveAll)
-        .then(Mono.just("File uploaded successfully"));
+        .then(Mono.just("Uploaded"));
   }
 }

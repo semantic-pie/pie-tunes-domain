@@ -1,39 +1,36 @@
 package com.apipietunes.clients.controllers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.apipietunes.clients.services.TrackLoaderService;
+import com.apipietunes.clients.services.TrackStreamingService;
+import com.apipietunes.clients.services.exceptions.TrackNotFoundException;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@Slf4j
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TrackTestStreamer {
 
-    private final TrackLoaderService trackLoaderService;
+    @Value("${minio.bucket}")
+    public String BUCKET_NAME;
+
+    private final TrackStreamingService trackStreamingService;
 
     @GetMapping("/api/play/{id}")
-    public Mono<ResponseEntity<?>> getMethodName(@PathVariable String id) {
-            var resource = trackLoaderService.load(id);
-        
-            return resource.map(inputStream -> {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.valueOf("audio/mpeg"));
-
-                return ResponseEntity.ok().headers(headers).body(new InputStreamResource(inputStream));
-            });
+    public Mono<ResponseEntity<InputStreamResource>> getMethodName(@PathVariable String id) {
+        return trackStreamingService.getById(id).map(inputStream -> ResponseEntity.ok()
+                .contentType(MediaType.valueOf("audio/mpeg"))
+                .body(new InputStreamResource(inputStream)))
+                .switchIfEmpty(Mono.error(new TrackNotFoundException("Track with id '" + id + "' not found.")));
     }
-
 }
