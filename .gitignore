@@ -4,6 +4,10 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.DS_Store
+
+neo4jdb/export
+neo4jdb
 
 ### STS ###
 .apt_generated

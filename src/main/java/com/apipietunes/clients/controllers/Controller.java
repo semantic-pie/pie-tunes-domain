@@ -3,7 +3,7 @@ package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
 import com.apipietunes.clients.services.UserNeo4jService;
-import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
+import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,7 +27,7 @@ public class Controller {
 
         return userNeo4jService.saveUserNeo4j(client)
                 .onErrorResume(error -> {
-                    if (error instanceof UserAlreadyExistsException) {
+                    if (error instanceof NodeAlreadyExists) {
                         return Mono.empty();
                     } else {
                         return Mono.empty();
