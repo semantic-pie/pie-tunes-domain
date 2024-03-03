@@ -29,7 +29,7 @@ public class MusicGenre {
 
     private String name;
 
-     @Relationship(type = "IN_GENRE", direction = Relationship.Direction.INCOMING)
-     private Set<MusicTrack> tracks;
+    //  @Relationship(type = "IN_GENRE", direction = Relationship.Direction.INCOMING)
+    //  private Set<MusicTrack> tracks;
 
 }
