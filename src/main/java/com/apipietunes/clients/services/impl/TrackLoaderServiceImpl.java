@@ -58,7 +58,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     }
 
     private Mono<MusicTrack> recursiveSave(Mono<MusicTrack> track, Queue<FilePart> files) {
-        if (files.size() > 0)
+        if (!files.isEmpty())
             return track.flatMap(t -> recursiveSave(save(files.remove()), files));
         else
             return track;
@@ -77,7 +77,6 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                     .flatMap((existingTrack) -> {
                         String errorMessage = String.format("Track with name '%s' and artist '%s' already exists.",
                                 existingTrack.getTitle(), existingTrack.getMusicBand());
-                        log.info(errorMessage);
                         return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
                     .switchIfEmpty(
