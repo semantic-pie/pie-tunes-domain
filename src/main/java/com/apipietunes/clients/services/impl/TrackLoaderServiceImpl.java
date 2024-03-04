@@ -1,4 +1,4 @@
-package com.apipietunes.clients.services;
+package com.apipietunes.clients.services.impl;
 
 import java.io.InputStream;
 import java.util.HashSet;
@@ -22,6 +22,7 @@ import com.apipietunes.clients.repositories.MusicAlbumRepository;
 import com.apipietunes.clients.repositories.MusicBandRepository;
 import com.apipietunes.clients.repositories.MusicGenreRepository;
 import com.apipietunes.clients.repositories.TrackMetadatRepository;
+import com.apipietunes.clients.services.TrackLoaderService;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
 
@@ -51,13 +52,14 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     private final TrackMetadataParser parser;
 
     @Override
+    @Transactional
     public Mono<Void> saveAll(List<FilePart> trackFiles) {
         Queue<FilePart> tracksQueue = new LinkedList<>(trackFiles);
         return recursiveSave(save(tracksQueue.remove()), tracksQueue).then(Mono.empty());
     }
 
     private Mono<MusicTrack> recursiveSave(Mono<MusicTrack> track, Queue<FilePart> files) {
-        if (files.size() > 0)
+        if (!files.isEmpty())
             return track.flatMap(t -> recursiveSave(save(files.remove()), files));
         else
             return track;
@@ -76,7 +78,6 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                     .flatMap((existingTrack) -> {
                         String errorMessage = String.format("Track with name '%s' and artist '%s' already exists.",
                                 existingTrack.getTitle(), existingTrack.getMusicBand());
-                        log.info(errorMessage);
                         return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
                     .switchIfEmpty(
@@ -121,7 +122,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
     private Mono<MusicTrack> saveMinio(MusicTrack musicTrack, FilePart file) {
         String contentType = file.headers().getContentType().toString();
-        String filename = UUID.randomUUID().toString();
+        String filename = musicTrack.getUuid().toString();
 
         return DataBufferUtils.join(file.content())
                 .flatMap(dataBuffer -> {
