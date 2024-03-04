@@ -121,7 +121,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
     private Mono<MusicTrack> saveMinio(MusicTrack musicTrack, FilePart file) {
         String contentType = file.headers().getContentType().toString();
-        String filename = UUID.randomUUID().toString();
+        String filename = musicTrack.getUuid().toString();
 
         return DataBufferUtils.join(file.content())
                 .flatMap(dataBuffer -> {
