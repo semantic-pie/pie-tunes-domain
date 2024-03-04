@@ -21,7 +21,7 @@ public class TrackLoaderController {
 
   private final TrackLoaderService trackLoaderService;
 
-  @PostMapping("/api/track-loader/upload")
+  @PostMapping(value = "/api/track-loader/upload", consumes = "multipart/form-data")
   public Mono<String> handleFileUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
     return filePartFlux.collectList()
         .flatMap(trackLoaderService::saveAll)

@@ -52,6 +52,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     private final TrackMetadataParser parser;
 
     @Override
+    @Transactional
     public Mono<Void> saveAll(List<FilePart> trackFiles) {
         Queue<FilePart> tracksQueue = new LinkedList<>(trackFiles);
         return recursiveSave(save(tracksQueue.remove()), tracksQueue).then(Mono.empty());
