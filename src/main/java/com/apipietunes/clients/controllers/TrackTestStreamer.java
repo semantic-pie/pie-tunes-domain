@@ -1,6 +1,5 @@
 package com.apipietunes.clients.controllers;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,16 +20,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 @CrossOrigin(origins = "*")
 public class TrackTestStreamer {
 
-    @Value("${minio.bucket}")
-    public String BUCKET_NAME;
-
     private final TrackStreamingService trackStreamingService;
 
-    @GetMapping("/api/play/{id}")
-    public Mono<ResponseEntity<InputStreamResource>> getMethodName(@PathVariable String id) {
-        return trackStreamingService.getById(id).map(inputStream -> ResponseEntity.ok()
+    @GetMapping("/api/play/{id}.mp3")
+    public Mono<ResponseEntity<InputStreamResource>> play(@PathVariable String id) {
+        return trackStreamingService.getTrackById(id).map(inputStream -> ResponseEntity.ok()
                 .contentType(MediaType.valueOf("audio/mpeg"))
                 .body(new InputStreamResource(inputStream)))
                 .switchIfEmpty(Mono.error(new TrackNotFoundException("Track with id '" + id + "' not found.")));
+    }
+
+    @GetMapping("/api/tracks/covers/{id}")
+    public Mono<ResponseEntity<InputStreamResource>> cover(@PathVariable String id) {
+        return trackStreamingService.getTrackCoverById(id).map(inputStream -> ResponseEntity.ok()
+                .contentType(MediaType.valueOf(inputStream.headers().get("Content-Type")))
+                .body(new InputStreamResource(inputStream)))
+                .switchIfEmpty(
+                        Mono.error(new TrackNotFoundException("Cover for track with id '" + id + "' not found.")));
     }
 }
