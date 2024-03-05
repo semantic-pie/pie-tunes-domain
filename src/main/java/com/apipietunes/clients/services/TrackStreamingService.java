@@ -1,9 +1,10 @@
 package com.apipietunes.clients.services;
 
-import java.io.InputStream;
-
+import io.minio.GetObjectResponse;
 import reactor.core.publisher.Mono;
 
 public interface TrackStreamingService {
-    Mono<InputStream> getById(String id);
+    Mono<GetObjectResponse> getTrackById(String id);
+
+    Mono<GetObjectResponse> getTrackCoverById(String id);
 }

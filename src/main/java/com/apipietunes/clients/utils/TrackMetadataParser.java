@@ -22,7 +22,7 @@ import com.mpatric.mp3agic.UnsupportedTagException;
 @Component
 public class TrackMetadataParser {
 
-    public MusicTrack parse(FilePart file) {
+    public TrackMetadataParseResult parse(FilePart file) {
         try {
             File trackFile = File.createTempFile(file.filename(), ".tmp");
 
@@ -40,7 +40,13 @@ public class TrackMetadataParser {
             musicTrack.setMusicBand(musicBand);
             musicTrack.setGenres(musicGenre);
 
-            return musicTrack;
+            byte[] cover = id3v2.getAlbumImage();
+            String coverMimeType = id3v2.getAlbumImageMimeType();
+
+            return TrackMetadataParseResult.builder()
+                    .musicTrack(musicTrack)
+                    .cover(cover)
+                    .coverMimeType(coverMimeType).build();
         } catch (UnsupportedTagException | InvalidDataException | IOException e) {
             e.printStackTrace();
             throw new CantParseTrackMetadataException("kek");

@@ -29,11 +29,14 @@ public class MinioConfiguration {
     @Value("${minio.secretKey}")
     private String secretKey;
 
-    @Value("${minio.bucket}")
-    public String BUCKET_NAME;
+    @Value("${minio.buckets.tracks}")
+    public String TRACKS_BUCKET;
+
+    @Value("${minio.buckets.covers}")
+    public String COVERS_BUCKET;
 
     @Bean
-    public MinioClient minioClient() throws ServerException, InsufficientDataException, ErrorResponseException,
+    MinioClient minioClient() throws ServerException, InsufficientDataException, ErrorResponseException,
             IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException,
             InternalException {
         var client = MinioClient.builder()
@@ -41,11 +44,17 @@ public class MinioConfiguration {
                 .credentials(accessKey, secretKey)
                 .build();
 
-        boolean isBucketExist = client.bucketExists(BucketExistsArgs.builder().bucket(BUCKET_NAME).build());
+        boolean isTracksBucketExist = client.bucketExists(BucketExistsArgs.builder().bucket(TRACKS_BUCKET).build());
+        boolean isCoversBucketExist = client.bucketExists(BucketExistsArgs.builder().bucket(COVERS_BUCKET).build());
 
-        if (!isBucketExist) {
-            client.makeBucket(MakeBucketArgs.builder().bucket(BUCKET_NAME).build());
+        if (!isTracksBucketExist) {
+            client.makeBucket(MakeBucketArgs.builder().bucket(TRACKS_BUCKET).build());
         }
+
+        if (!isCoversBucketExist) {
+            client.makeBucket(MakeBucketArgs.builder().bucket(COVERS_BUCKET).build());
+        }
+
 
         return client;
     }

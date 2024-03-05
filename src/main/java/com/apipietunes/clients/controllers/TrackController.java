@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @CrossOrigin(origins = "*")
 @AllArgsConstructor
-public class Trackontroller {
+public class TrackController {
     private final TrackMetadatRepository trackMetadatRepository;
 
     @GetMapping("/api/tracks")
