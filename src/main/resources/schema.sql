@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS USER_SQL;
+
+
+CREATE TABLE USER_SQL
+(
+    uuid     UUID DEFAULT UUID() PRIMARY KEY,
+    name     VARCHAR(250) NOT NULL,
+    email    VARCHAR(250) UNIQUE,
+    password VARCHAR(250),
+    role     VARCHAR(250)
+);

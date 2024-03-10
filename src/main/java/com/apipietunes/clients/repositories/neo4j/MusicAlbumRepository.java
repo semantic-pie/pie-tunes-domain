@@ -1,4 +1,4 @@
-package com.apipietunes.clients.repositories;
+package com.apipietunes.clients.repositories.neo4j;
 
 import java.util.UUID;
 

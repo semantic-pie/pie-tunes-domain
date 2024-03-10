@@ -1,7 +1,9 @@
 package com.apipietunes.clients.controllers;
 
 
+import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
 import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
+import com.apipietunes.clients.repositories.neo4j.MusicGenreRepository;
 import com.apipietunes.clients.services.UserNeo4jService;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import lombok.AllArgsConstructor;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class Controller {
 
     private UserNeo4jService userNeo4jService;
+    private MusicGenreRepository musicGenreRepository;
 
 
 //        @PostMapping(value = "/users", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -45,6 +48,20 @@ public class Controller {
     public Mono<UserNeo4j> get(@PathVariable("id") String uuid) {
         return userNeo4jService.getUserByUuid(UUID.fromString(uuid));
     }
+
+    /*@GetMapping("/url")
+    public Mono<MusicGenre> testMethod() {
+//        MusicGenre genre = new MusicGenre();
+//        genre.setName("Hard Rock");
+//        return musicGenreRepository.persist(genre);
+//        Mono<MusicGenre> musicGenreMono = musicGenreRepository.findByName("Hard Rock");
+
+//        MusicGenre genre = new MusicGenre();
+//        genre.setName("BMTH");
+//        return musicGenreRepository.save(genre);
+
+
+    }*/
 
 
 

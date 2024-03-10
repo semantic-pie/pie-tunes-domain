@@ -1,9 +1,6 @@
 package com.apipietunes.clients.models.neo4jDomain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -16,17 +13,20 @@ import java.util.UUID;
 
 @Node("Genre")
 @RequiredArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 public class MusicGenre {
 
-    @Id
-    @GeneratedValue
-    private UUID uuid;
+//    @Id
+//    @GeneratedValue
+//    private UUID uuid;
 
     @Version
     private Long version;
 
+    @Id
+    @NonNull
     private String name;
 
     //  @Relationship(type = "IN_GENRE", direction = Relationship.Direction.INCOMING)
