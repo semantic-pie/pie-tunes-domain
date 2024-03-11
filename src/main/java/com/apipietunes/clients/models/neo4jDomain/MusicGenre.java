@@ -18,10 +18,6 @@ import java.util.UUID;
 @Setter
 public class MusicGenre {
 
-//    @Id
-//    @GeneratedValue
-//    private UUID uuid;
-
     @Version
     private Long version;
 
