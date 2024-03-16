@@ -21,15 +21,5 @@ public class TrackController {
     public Flux<MusicTrack> getMethodName() {
         return trackMetadataRepository.findAll();
     }
-
-    /*@GetMapping("/api/tracks/search")
-    public Flux<Trackdto> test(@RequestParam(required = false, value = "q") String searchQuery,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "8") int limit) {
-        Pageable pageable = PageRequest.of(page, limit);
-        Flux<Trackdto> map = curwa.findAllMatches(searchQuery, pageable);
-        System.out.println("qqwert");
-        return map;
-    }*/
     
 }
