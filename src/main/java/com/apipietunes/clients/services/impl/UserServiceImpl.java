@@ -17,8 +17,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
-import java.util.UUID;
-import java.util.logging.Level;
 
 @Service
 @AllArgsConstructor
@@ -28,11 +26,6 @@ public class UserServiceImpl implements UserService {
     private final UserNeo4jRepository userNeo4jRepository;
     private final UserH2Repository userH2Repository;
     private final MusicGenreRepository musicGenreRepository;
-
-
-    public Mono<UserNeo4j> getUserByUuid(UUID uuid) {
-        return userNeo4jRepository.findUserNeo4jByUuid(uuid);
-    }
 
     @Override
     @Transactional
@@ -72,19 +65,8 @@ public class UserServiceImpl implements UserService {
     }
 
 
-
 }
 
-
-/*    public Mono<UserNeo4j> updateClient(String id, UserNeo4j updatedUser) {
-        return clientRepository.findClientByEmail(id)
-                .map(userToUpdate -> {
-//                    userToUpdate.setName(updatedUser.getName());
-//                    userToUpdate.setUserRole(updatedUser.getUserRole());
-                    return userToUpdate;
-                })
-                .flatMap(clientRepository::save);
-    }*/
 
 
 

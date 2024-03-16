@@ -9,11 +9,11 @@ import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Mono;
 
 
-
 public interface MusicGenreRepository extends ReactiveNeo4jRepository<MusicGenre, String> {
-    Mono<MusicGenre> findByName(String name);
-
-//    @Query("MERGE (g:Genre {name: :#{#musicGenre.name}}) RETURN g")
-    @Query("MERGE (g:Genre {name: :#{#musicGenre.name}}) ON CREATE SET g.version = 0 RETURN g")
+    @Query("""
+            MERGE (g:Genre {name: :#{#musicGenre.name}})
+            ON CREATE SET g.version = 0
+            RETURN g
+            """)
     Mono<MusicGenre> persist(@Param("musicGenre") MusicGenre musicGenre);
 }

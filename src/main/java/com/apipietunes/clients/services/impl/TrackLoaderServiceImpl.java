@@ -2,11 +2,7 @@ package com.apipietunes.clients.services.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
@@ -21,7 +17,7 @@ import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 import com.apipietunes.clients.repositories.neo4j.MusicAlbumRepository;
 import com.apipietunes.clients.repositories.neo4j.MusicBandRepository;
 import com.apipietunes.clients.repositories.neo4j.MusicGenreRepository;
-import com.apipietunes.clients.repositories.neo4j.TrackMetadatRepository;
+import com.apipietunes.clients.repositories.neo4j.TrackMetadataRepository;
 import com.apipietunes.clients.services.TrackLoaderService;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
@@ -45,7 +41,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     public String COVERS_BUCKET;
 
     private final MinioClient minioClient;
-    private final TrackMetadatRepository trackMetadatRepository;
+    private final TrackMetadataRepository trackMetadataRepository;
     private final MusicBandRepository musicBandRepository;
     private final MusicGenreRepository musicGenreRepository;
     private final MusicAlbumRepository musicAlbumRepository;
@@ -73,13 +69,13 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
             var result = parser.parse(filePart);
             MusicTrack musicTrack = result.getMusicTrack();
 
-            Mono<MusicTrack> track = trackMetadatRepository
+            return trackMetadataRepository
                     .findByTitleAndMusicBand_Name(
                             musicTrack.getTitle(),
                             musicTrack.getMusicBand().getName())
                     .flatMap((existingTrack) -> {
                         String errorMessage = String.format("Track with name '%s' and artist '%s' already exists.",
-                                existingTrack.getTitle(), existingTrack.getMusicBand());
+                                existingTrack.getTitle(), existingTrack.getMusicBand().getName());
                         return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
                     .switchIfEmpty(
@@ -87,39 +83,29 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                                     .flatMap(persistedTrack -> saveMinio(persistedTrack, filePart, result.getCover(),
                                             result.getCoverMimeType())))
                     .cast(MusicTrack.class);
-
-            return track;
         } catch (RuntimeException exception) {
             return Mono.error(exception);
         }
     }
 
-    @Transactional
     private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
-        log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
-
         MusicBand musicBand = musicTrack.getMusicBand();
         MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
-        Set<MusicGenre> musicGenres = musicTrack.getGenres();
+        musicAlbum.setMusicBand(musicBand);
 
-        Mono<MusicBand> bandMono = musicBandRepository
-                .findByName(musicBand.getName())
-                .switchIfEmpty(Mono.defer(() -> musicBandRepository.save(musicBand)));
-
-        Mono<MusicAlbum> albumMono = musicAlbumRepository
-                .findByName(musicAlbum.getName())
-                .switchIfEmpty(Mono.defer(() -> musicAlbumRepository.save(musicAlbum)));
-
-        Flux<MusicGenre> genreFlux = Flux.fromIterable(musicGenres)
-                .flatMap(g -> musicGenreRepository.findByName(g.getName())
-                        .switchIfEmpty(Mono.defer(() -> musicGenreRepository.save(g))));
+        Mono<MusicAlbum> albumMono = musicAlbumRepository.persist(musicAlbum);
+        Mono<MusicBand> bandMono =  musicBandRepository.findMusicBandByName(musicBand.getName());
+        Flux<MusicGenre> genreFlux = Flux.fromIterable(musicTrack.getGenres())
+                .flatMap(musicGenreRepository::persist);
 
         return Mono.zip(bandMono, albumMono, genreFlux.collectList())
                 .flatMap(tuple -> {
                     musicTrack.setMusicBand(tuple.getT1());
                     musicTrack.setMusicAlbum(tuple.getT2());
                     musicTrack.setGenres(new HashSet<>(tuple.getT3()));
-                    return trackMetadatRepository.save(musicTrack);
+                    Mono<MusicTrack> trackToSave = trackMetadataRepository.save(musicTrack);
+                    log.info("Save track to Neo4j: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
+                    return trackToSave;
                 });
     }
 
@@ -129,28 +115,28 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
         return DataBufferUtils.join(file.content())
                 .flatMap(dataBuffer -> {
-                    log.info("save to minio '{}' : '{}'", musicTrack.getTitle(), filename);
+                    log.info("Save track to MinIO '{}' : '{}'", musicTrack.getTitle(), filename);
 
                     try (
                             InputStream trackInputStream = dataBuffer.asInputStream();
                             InputStream coverInputStream = new ByteArrayInputStream(cover)) {
                         return Mono.zip(
-                                // save track data
-                                Mono.just(minioClient.putObject(
-                                        PutObjectArgs.builder()
-                                                .bucket(TRACKS_BUCKET)
-                                                .object(filename)
-                                                .contentType(contentType)
-                                                .stream(trackInputStream, trackInputStream.available(), -1)
-                                                .build())),
-                                // save track cover
-                                Mono.just(minioClient.putObject(
-                                        PutObjectArgs.builder()
-                                                .bucket(COVERS_BUCKET)
-                                                .object(filename)
-                                                .contentType(coverMimeType)
-                                                .stream(coverInputStream, coverInputStream.available(), -1)
-                                                .build())))
+                                        // save track data
+                                        Mono.just(minioClient.putObject(
+                                                PutObjectArgs.builder()
+                                                        .bucket(TRACKS_BUCKET)
+                                                        .object(filename)
+                                                        .contentType(contentType)
+                                                        .stream(trackInputStream, trackInputStream.available(), -1)
+                                                        .build())),
+                                        // save track cover
+                                        Mono.just(minioClient.putObject(
+                                                PutObjectArgs.builder()
+                                                        .bucket(COVERS_BUCKET)
+                                                        .object(filename)
+                                                        .contentType(coverMimeType)
+                                                        .stream(coverInputStream, coverInputStream.available(), -1)
+                                                        .build())))
                                 .flatMap((ignore) -> Mono.just(musicTrack));
                     } catch (Exception ex) {
                         return Mono.empty();
