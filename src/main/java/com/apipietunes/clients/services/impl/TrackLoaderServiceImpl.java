@@ -102,7 +102,10 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                 .flatMap(tuple -> {
                     musicTrack.setMusicBand(tuple.getT1());
                     musicTrack.setMusicAlbum(tuple.getT2());
-                    musicTrack.setGenres(new HashSet<>(tuple.getT3()));
+                    var genres = tuple.getT3();
+                    if (!genres.isEmpty()) {
+                        musicTrack.setGenres(new HashSet<>(genres));
+                    }
                     Mono<MusicTrack> trackToSave = trackMetadataRepository.save(musicTrack);
                     log.info("Save track to Neo4j: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
                     return trackToSave;

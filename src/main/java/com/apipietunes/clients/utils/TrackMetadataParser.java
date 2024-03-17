@@ -85,7 +85,9 @@ public class TrackMetadataParser {
     }
 
     private Set<MusicGenre> parseMusicGenre(Mp3File file, ID3v2 id3v2) {
-        return splitGenres(id3v2.getGenreDescription()).map(this::toMusicGenre).collect(Collectors.toSet());
+        var genres = id3v2.getGenreDescription();
+        if (genres == null || genres.isEmpty()) return Set.of();
+        return splitGenres(genres).map(this::toMusicGenre).collect(Collectors.toSet());
     }
 
     private MusicGenre toMusicGenre(String name) {
