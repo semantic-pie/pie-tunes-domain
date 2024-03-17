@@ -3,7 +3,6 @@ package com.apipietunes.clients.models.neo4jDomain;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import org.springframework.data.annotation.Version;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -32,12 +31,5 @@ public class MusicBand {
 
     @Nullable
     private String description;
-
-    //  @Relationship(type = "HAS_TRACK", direction = Relationship.Direction.OUTGOING)
-    //  private Set<MusicTrack> allTracksInBand;
-
-    //  @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.OUTGOING)
-    //  private Set<MusicAlbum> allAlbumsInBand;
-
 
 }

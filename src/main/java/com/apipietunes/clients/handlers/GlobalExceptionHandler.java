@@ -1,5 +1,7 @@
 package com.apipietunes.clients.handlers;
 
+import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -31,6 +33,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NodeAlreadyExists.class)
     public Mono<ApiPieTunesErrorInfo> handleConflicts(ServerWebExchange exchange, Exception ex) {
         log.warn(ex.getMessage());
+        return Mono.just(new ApiPieTunesErrorInfo(HttpStatus.CONFLICT.value(),
+                exchange.getRequest().getPath().toString(), ex.getMessage()));
+    }
+
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    Mono<ApiPieTunesErrorInfo>
+    handleUserAlreadyExistsException(ServerWebExchange exchange, Exception ex) {
         return Mono.just(new ApiPieTunesErrorInfo(HttpStatus.CONFLICT.value(),
                 exchange.getRequest().getPath().toString(), ex.getMessage()));
     }

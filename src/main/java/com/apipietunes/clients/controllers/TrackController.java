@@ -1,16 +1,12 @@
 package com.apipietunes.clients.controllers;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
-import com.apipietunes.clients.repositories.TrackMetadatRepository;
+import com.apipietunes.clients.repositories.neo4j.TrackMetadataRepository;
+import org.springframework.web.bind.annotation.*;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
-
-import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Slf4j
@@ -18,11 +14,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 @CrossOrigin(origins = "*")
 @AllArgsConstructor
 public class TrackController {
-    private final TrackMetadatRepository trackMetadatRepository;
+
+    private final TrackMetadataRepository trackMetadataRepository;
 
     @GetMapping("/api/tracks")
-    public Flux<MusicTrack> getMethodName() {
-        return trackMetadatRepository.findAll();
+    public Flux<MusicTrack> getMethodName(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "8") int limit) {
+
+        return trackMetadataRepository.findAll().skip(page).take(limit);
     }
-    
+
 }
