@@ -23,7 +23,4 @@ public class MusicGenre {
     @NonNull
     private String name;
 
-    @Relationship(type = "IN_GENRE", direction = Relationship.Direction.INCOMING)
-    private Set<MusicTrack> tracks;
-
 }

@@ -15,5 +15,4 @@ public interface TrackMetadataRepository extends ReactiveNeo4jRepository<MusicTr
 
     Mono<MusicTrack> findByUuid(UUID uuid);
 
-
 }
