@@ -27,6 +27,7 @@
     </form>
 
     <script>
+      const host = '192.168.192.36'
       function _(el) {
         return document.getElementById(el);
       }
@@ -45,7 +46,7 @@
         console.log("data: ", formData);
 
         const xhr = new XMLHttpRequest();
-        xhr.open("POST", "http://localhost:8080/api/track-loader/upload", true);
+        xhr.open("POST", "http://" + host + ":8080/api/track-loader/upload", true);
         xhr.upload.addEventListener("progress", progressHandler, false);
         xhr.addEventListener("load", completeHandler, false);
         xhr.addEventListener("error", errorHandler, false);
