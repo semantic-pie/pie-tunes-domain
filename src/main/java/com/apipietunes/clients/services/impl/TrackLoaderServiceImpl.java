@@ -68,6 +68,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
         try {
             var result = parser.parse(filePart);
             MusicTrack musicTrack = result.getMusicTrack();
+            musicTrack.setReleaseYear("1988");
 
             return trackMetadataRepository
                     .findByTitleAndMusicBand_Name(
