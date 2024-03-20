@@ -63,9 +63,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     }
 
     @Override
-//    @Transactional
     public Mono<MusicTrack> save(FilePart filePart) {
-       log.info("call save method");
         try {
             var result = parser.parse(filePart);
             MusicTrack musicTrack = result.getMusicTrack();
@@ -89,18 +87,20 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
             return Mono.error(exception);
         }
     }
+
     @Transactional
     private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
 
         MusicBand musicBand = musicTrack.getMusicBand();
         MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
-        musicAlbum.setMusicBand(musicBand);
+
         Set<MusicGenre> musicGenres = musicTrack.getGenres();
 
         Mono<MusicBand> bandMono = musicBandRepository
                 .findMusicBandByName(musicBand.getName())
-                .switchIfEmpty(Mono.defer(() -> musicBandRepository.save(musicBand)));
+                .switchIfEmpty(Mono.defer(() -> 
+                    musicBandRepository.save(musicBand)));
 
         Mono<MusicAlbum> albumMono = musicAlbumRepository
                 .findMusicAlbumByName(musicAlbum.getName())
@@ -112,9 +112,16 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
         return Mono.zip(bandMono, albumMono, genreFlux.collectList())
                 .flatMap(tuple -> {
-                    musicTrack.setMusicBand(tuple.getT1());
-                    musicTrack.setMusicAlbum(tuple.getT2());
+                    var band = tuple.getT1();
+                    var album = tuple.getT2();
+
+                    musicTrack.setMusicBand(band);
+                    musicTrack.setMusicAlbum(album);
+
+                    album.setMusicBand(band);
+
                     musicTrack.setGenres(new HashSet<>(tuple.getT3()));
+
                     return trackMetadataRepository.save(musicTrack);
                 });
     }
@@ -131,26 +138,59 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                             InputStream trackInputStream = dataBuffer.asInputStream();
                             InputStream coverInputStream = new ByteArrayInputStream(cover)) {
                         return Mono.zip(
-                                        // save track data
-                                        Mono.just(minioClient.putObject(
-                                                PutObjectArgs.builder()
-                                                        .bucket(TRACKS_BUCKET)
-                                                        .object(filename)
-                                                        .contentType(contentType)
-                                                        .stream(trackInputStream, trackInputStream.available(), -1)
-                                                        .build())),
-                                        // save track cover
-                                        Mono.just(minioClient.putObject(
-                                                PutObjectArgs.builder()
-                                                        .bucket(COVERS_BUCKET)
-                                                        .object(filename)
-                                                        .contentType(coverMimeType)
-                                                        .stream(coverInputStream, coverInputStream.available(), -1)
-                                                        .build())))
+                                // save track data
+                                Mono.just(minioClient.putObject(
+                                        PutObjectArgs.builder()
+                                                .bucket(TRACKS_BUCKET)
+                                                .object(filename)
+                                                .contentType(contentType)
+                                                .stream(trackInputStream, trackInputStream.available(), -1)
+                                                .build())),
+                                // save track cover
+                                Mono.just(minioClient.putObject(
+                                        PutObjectArgs.builder()
+                                                .bucket(COVERS_BUCKET)
+                                                .object(filename)
+                                                .contentType(coverMimeType)
+                                                .stream(coverInputStream, coverInputStream.available(), -1)
+                                                .build())))
                                 .flatMap((ignore) -> Mono.just(musicTrack));
                     } catch (Exception ex) {
                         return Mono.empty();
                     }
                 });
+    }
+
+    private void logAllAboutTrack(MusicTrack musicTrack) {
+        log.info("title: {}", musicTrack.getTitle());
+        log.info("releaseYear: {}", musicTrack.getReleaseYear());
+        log.info("bitrate: {}", musicTrack.getBitrate());
+        log.info("lengthInMilliseconds: {}", musicTrack.getLengthInMilliseconds());
+        log.info("version: {}", musicTrack.getVersion());
+        log.info("uuid: {}", musicTrack.getUuid());
+        log.info("\n---- genres ----");
+        for (MusicGenre musicGenre : musicTrack.getGenres()) {
+            log.info("name: {}", musicGenre.getName());
+            log.info("version: {}\n", musicGenre.getVersion());
+        }
+
+        log.info("---- band ----");
+        var band = musicTrack.getMusicBand();
+        log.info("name: {}", band.getName());
+        log.info("description: {}", band.getDescription());
+        log.info("version: {}", band.getVersion());
+        log.info("uuid: {}\n", band.getUuid());
+
+        log.info("---- album ----");
+        var album = musicTrack.getMusicAlbum();
+        log.info("name: {}", album.getName());
+        log.info("description: {}", album.getDescription());
+        log.info("year: {}", album.getYearOfRecord());
+        log.info("version: {}", album.getVersion());
+        log.info("uuid: {}\n", album.getUuid());
+
+        log.info("genres: {}", musicTrack.getGenres().stream().map(MusicGenre::getName).toList());
+        log.info(": {}",
+        musicTrack.getGenres().stream().map(MusicGenre::getName).toList());
     }
 }
