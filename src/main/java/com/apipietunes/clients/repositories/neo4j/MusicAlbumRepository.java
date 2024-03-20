@@ -23,4 +23,6 @@ public interface MusicAlbumRepository extends ReactiveNeo4jRepository<MusicAlbum
             RETURN a
             """)
     Mono<MusicAlbum> persist(@Param("musicAlbum") MusicAlbum musicAlbum);
+
+    Mono<MusicAlbum> findMusicAlbumByName(String name);
 }

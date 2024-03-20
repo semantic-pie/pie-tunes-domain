@@ -16,4 +16,6 @@ public interface MusicGenreRepository extends ReactiveNeo4jRepository<MusicGenre
             RETURN g
             """)
     Mono<MusicGenre> persist(@Param("musicGenre") MusicGenre musicGenre);
+
+    Mono<MusicGenre> findMusicGenreByName(String name);
 }

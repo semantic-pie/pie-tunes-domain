@@ -63,8 +63,9 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public Mono<MusicTrack> save(FilePart filePart) {
+       log.info("call save method");
         try {
             var result = parser.parse(filePart);
             MusicTrack musicTrack = result.getMusicTrack();
@@ -88,28 +89,33 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
             return Mono.error(exception);
         }
     }
-
+    @Transactional
     private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
+        log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
+
         MusicBand musicBand = musicTrack.getMusicBand();
         MusicAlbum musicAlbum = musicTrack.getMusicAlbum();
         musicAlbum.setMusicBand(musicBand);
+        Set<MusicGenre> musicGenres = musicTrack.getGenres();
 
-        Mono<MusicAlbum> albumMono = musicAlbumRepository.persist(musicAlbum);
-        Mono<MusicBand> bandMono =  musicBandRepository.findMusicBandByName(musicBand.getName());
-        Flux<MusicGenre> genreFlux = Flux.fromIterable(musicTrack.getGenres())
-                .flatMap(musicGenreRepository::persist);
+        Mono<MusicBand> bandMono = musicBandRepository
+                .findMusicBandByName(musicBand.getName())
+                .switchIfEmpty(Mono.defer(() -> musicBandRepository.save(musicBand)));
+
+        Mono<MusicAlbum> albumMono = musicAlbumRepository
+                .findMusicAlbumByName(musicAlbum.getName())
+                .switchIfEmpty(Mono.defer(() -> musicAlbumRepository.save(musicAlbum)));
+
+        Flux<MusicGenre> genreFlux = Flux.fromIterable(musicGenres)
+                .flatMap(g -> musicGenreRepository.findMusicGenreByName(g.getName())
+                        .switchIfEmpty(Mono.defer(() -> musicGenreRepository.save(g))));
 
         return Mono.zip(bandMono, albumMono, genreFlux.collectList())
                 .flatMap(tuple -> {
                     musicTrack.setMusicBand(tuple.getT1());
                     musicTrack.setMusicAlbum(tuple.getT2());
-                    var genres = tuple.getT3();
-                    if (!genres.isEmpty()) {
-                        musicTrack.setGenres(new HashSet<>(genres));
-                    }
-                    Mono<MusicTrack> trackToSave = trackMetadataRepository.save(musicTrack);
-                    log.info("Save track to Neo4j: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
-                    return trackToSave;
+                    musicTrack.setGenres(new HashSet<>(tuple.getT3()));
+                    return trackMetadataRepository.save(musicTrack);
                 });
     }
 
