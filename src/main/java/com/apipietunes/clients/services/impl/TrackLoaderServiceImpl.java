@@ -1,9 +1,14 @@
 package com.apipietunes.clients.services.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
+import io.minio.*;
+import io.minio.errors.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
@@ -22,8 +27,6 @@ import com.apipietunes.clients.services.TrackLoaderService;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
 
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
@@ -89,7 +92,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     }
 
     @Transactional
-    private Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
+    protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
 
         MusicBand musicBand = musicTrack.getMusicBand();
@@ -126,13 +129,14 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                 });
     }
 
-    private Mono<MusicTrack> saveMinio(MusicTrack musicTrack, FilePart file, byte[] cover, String coverMimeType) {
-        String contentType = file.headers().getContentType().toString();
-        String filename = musicTrack.getUuid().toString();
+    private Mono<MusicTrack> saveMinio(MusicTrack musicTrack, FilePart file, byte[] cover, String coverContentType) {
+        String trackContentType = Objects.requireNonNull(file.headers().getContentType()).toString();
+        String trackObjectName = musicTrack.getUuid().toString();
+        String coverObjectName = musicTrack.getMusicAlbum().getUuid().toString();
 
         return DataBufferUtils.join(file.content())
                 .flatMap(dataBuffer -> {
-                    log.info("Save track to MinIO '{}' : '{}'", musicTrack.getTitle(), filename);
+                    log.info("Save track to MinIO '{}' : '{}'", musicTrack.getTitle(), trackObjectName);
 
                     try (
                             InputStream trackInputStream = dataBuffer.asInputStream();
@@ -142,23 +146,41 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                                 Mono.just(minioClient.putObject(
                                         PutObjectArgs.builder()
                                                 .bucket(TRACKS_BUCKET)
-                                                .object(filename)
-                                                .contentType(contentType)
+                                                .object(trackObjectName)
+                                                .contentType(trackContentType)
                                                 .stream(trackInputStream, trackInputStream.available(), -1)
                                                 .build())),
-                                // save track cover
-                                Mono.just(minioClient.putObject(
-                                        PutObjectArgs.builder()
-                                                .bucket(COVERS_BUCKET)
-                                                .object(filename)
-                                                .contentType(coverMimeType)
-                                                .stream(coverInputStream, coverInputStream.available(), -1)
-                                                .build())))
+                                // save track cover if not exist
+                                isCoverExist(coverObjectName).switchIfEmpty(Mono.defer(() -> {
+                                            try {
+                                                return Mono.just(minioClient.putObject(
+                                                        PutObjectArgs.builder()
+                                                                .bucket(COVERS_BUCKET)
+                                                                .object(coverObjectName)
+                                                                .contentType(coverContentType)
+                                                                .stream(coverInputStream, coverInputStream.available(), -1)
+                                                                .build()));
+                                            } catch (Exception e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        })))
                                 .flatMap((ignore) -> Mono.just(musicTrack));
                     } catch (Exception ex) {
                         return Mono.empty();
                     }
                 });
+    }
+
+    public Mono<GenericResponse> isCoverExist(String name) {
+        try {
+            return Mono.just(minioClient.statObject(StatObjectArgs.builder()
+                    .bucket(COVERS_BUCKET)
+                    .object(name).build()));
+        } catch (ErrorResponseException e) {
+            return Mono.empty();
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     private void logAllAboutTrack(MusicTrack musicTrack) {
