@@ -8,11 +8,13 @@ import com.apipietunes.clients.repositories.h2.UserH2Repository;
 import com.apipietunes.clients.repositories.neo4j.MusicGenreRepository;
 import com.apipietunes.clients.repositories.neo4j.UserNeo4jRepository;
 import com.apipietunes.clients.services.UserService;
+import com.apipietunes.clients.services.exceptions.ActionEventException;
 import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -62,6 +64,38 @@ public class UserServiceImpl implements UserService {
                     return userNeo4jRepository.save(userSaveToNeo4j)
                             .doOnNext(savedUserNeo4j -> log.info("User saved to Neo4j database with UUID: {}", savedUserNeo4j.getUuid()));
                 });
+    }
+
+    @Override
+    @Transactional
+    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+        return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
+                .flatMap(isLikeExists -> {
+                    if (!isLikeExists) {
+                        return userNeo4jRepository.likeExistingTrack(trackUuid, userUuid)
+                                .then();
+                    } else {
+                        String errorMessage = String.format("User already 'LIKES' track '%s'", trackUuid);
+                        return Mono.error(new ActionEventException(errorMessage));
+                    }
+                });
+
+    }
+
+    @Override
+    @Transactional
+    public Mono<Void> removeLikeEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+        return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
+                .flatMap(isLikeExists -> {
+                    if (isLikeExists) {
+                        return userNeo4jRepository.deleteLikeRelation(trackUuid, userUuid)
+                                .then();
+                    } else {
+                        String errorMessage = String.format("User doesn't 'LIKE' track '%s'", trackUuid);
+                        return Mono.error(new ActionEventException(errorMessage));
+                    }
+                });
+
     }
 
 
