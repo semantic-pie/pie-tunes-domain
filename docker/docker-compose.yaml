@@ -1,0 +1,6 @@
+version: "3.7"
+services:
+  pie-tunes-domain:
+    image: pie-tunes-domain:latest
+    container_name: "pie-tunes-domain"
+    network_mode: host
