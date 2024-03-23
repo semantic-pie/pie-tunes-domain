@@ -2,7 +2,6 @@
 
 DIR="$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 USER_DIR=$(pwd)
-APP_VERSION=0.0.1-SNAPSHOT
 
 function unpack() {
   FOLDER=$1
@@ -37,6 +36,6 @@ echo "Unpacking JARs"
 unpack .
 
 echo "Building Docker image"
-build . usersmicroservice ${APP_VERSION}
+build . pie-tunes-domain
 
 cd $USER_DIR
