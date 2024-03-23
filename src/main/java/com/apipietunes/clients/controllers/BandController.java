@@ -46,7 +46,7 @@ public class BandController {
     @Parameter(in = ParameterIn.QUERY, name ="limit" ,schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     public Flux<MusicBand> findByTitle(@RequestParam(defaultValue = "0") long page,
                                         @RequestParam(defaultValue = "16") long limit,
-                                        @RequestParam(required = false) String query) {
+                                        @RequestParam() String query) {
         return null;
     }
 
