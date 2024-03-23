@@ -9,6 +9,7 @@ import java.util.*;
 
 import io.minio.*;
 import io.minio.errors.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.codec.multipart.FilePart;
@@ -37,6 +38,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class TrackLoaderServiceImpl implements TrackLoaderService {
 
+    @Autowired
+    TrackLoaderServiceImpl self;
+
     @Value("${minio.buckets.tracks}")
     public String TRACKS_BUCKET;
 
@@ -52,20 +56,20 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     private final TrackMetadataParser parser;
 
     @Override
-    @Transactional
     public Mono<Void> saveAll(List<FilePart> trackFiles) {
         Queue<FilePart> tracksQueue = new LinkedList<>(trackFiles);
-        return recursiveSave(save(tracksQueue.remove()), tracksQueue).then(Mono.empty());
+        return recursiveSave(self.save(tracksQueue.remove()), tracksQueue).then(Mono.empty());
     }
 
     private Mono<MusicTrack> recursiveSave(Mono<MusicTrack> track, Queue<FilePart> files) {
         if (!files.isEmpty())
-            return track.flatMap(t -> recursiveSave(save(files.remove()), files));
+            return track.flatMap(t -> recursiveSave(self.save(files.remove()), files));
         else
             return track;
     }
 
     @Override
+    @Transactional
     public Mono<MusicTrack> save(FilePart filePart) {
         try {
             var result = parser.parse(filePart);
@@ -91,7 +95,6 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
         }
     }
 
-    @Transactional
     protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
 

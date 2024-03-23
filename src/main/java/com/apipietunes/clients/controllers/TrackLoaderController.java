@@ -27,4 +27,9 @@ public class TrackLoaderController {
         .flatMap(trackLoaderService::saveAll)
         .then(Mono.just("Uploaded"));
   }
+
+  @PostMapping(value = "/api/track-loader/upload-one", consumes = "multipart/form-data")
+  public Mono<String> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
+    return filePartFlux.flatMap(trackLoaderService::save).then(Mono.just("Uploaded"));
+  }
 }
