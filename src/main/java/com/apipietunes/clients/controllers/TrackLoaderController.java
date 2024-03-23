@@ -1,10 +1,9 @@
 package com.apipietunes.clients.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.apipietunes.clients.services.TrackLoaderService;
 
@@ -17,18 +16,21 @@ import reactor.core.publisher.Mono;
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "*")
+@RequestMapping("/api")
 public class TrackLoaderController {
 
   private final TrackLoaderService trackLoaderService;
 
-  @PostMapping(value = "/api/track-loader/upload", consumes = "multipart/form-data")
+  @Operation(description = "Upload multiple multipart files. (overflow is possible)")
+  @PostMapping(value = "/track-loader/upload", consumes = "multipart/form-data")
   public Mono<String> handleFileUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
     return filePartFlux.collectList()
         .flatMap(trackLoaderService::saveAll)
         .then(Mono.just("Uploaded"));
   }
 
-  @PostMapping(value = "/api/track-loader/upload-one", consumes = "multipart/form-data")
+  @Operation(description = "Upload single multipart file.")
+  @PostMapping(value = "/track-loader/upload-one", consumes = "multipart/form-data")
   public Mono<String> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
     return filePartFlux.flatMap(trackLoaderService::save).then(Mono.just("Uploaded"));
   }

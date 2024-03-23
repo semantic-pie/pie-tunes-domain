@@ -2,6 +2,9 @@ package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.dtos.SearchEntityResponse;
 import com.apipietunes.clients.repositories.neo4j.SearchItemsRepository;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +28,10 @@ public class SearchController {
     private final SearchItemsRepository searchItemsRepository;
 
     @GetMapping("/search")
-    public Mono<Map<String, List<SearchEntityResponse>>> test(@RequestParam(required = false, value = "q") String searchQuery,
+    @Parameter(in = ParameterIn.QUERY, name ="query" ,schema = @Schema(type = "string", minLength = 1, maxLength = 20))
+    @Parameter(in = ParameterIn.QUERY, name ="page" ,schema = @Schema(type = "integer", minimum = "0"))
+    @Parameter(in = ParameterIn.QUERY, name ="limit" ,schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
+    public Mono<Map<String, List<SearchEntityResponse>>> test(@RequestParam(value = "query") String searchQuery,
                                                               @RequestParam(defaultValue = "0") int page,
                                                               @RequestParam(defaultValue = "8") int limit) {
         Pageable pageable = PageRequest.of(page, limit);
