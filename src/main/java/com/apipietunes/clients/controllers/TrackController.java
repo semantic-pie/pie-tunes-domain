@@ -18,10 +18,10 @@ public class TrackController {
     private final TrackMetadataRepository trackMetadataRepository;
 
     @GetMapping("/api/tracks")
-    public Flux<MusicTrack> getMethodName(@RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "8") int limit) {
+    public Flux<MusicTrack> getMethodName(@RequestParam(defaultValue = "0") long page,
+                                          @RequestParam(defaultValue = "8") long limit) {
 
-        return trackMetadataRepository.findAll().skip(page).take(limit);
+        return trackMetadataRepository.findAll().skip(page * limit).take(limit);
     }
 
 }
