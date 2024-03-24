@@ -27,7 +27,7 @@ public class SearchController {
 
     private final SearchItemsRepository searchItemsRepository;
 
-    @GetMapping("/search")
+   /* @GetMapping("/search")
     @Parameter(in = ParameterIn.QUERY, name ="query" ,schema = @Schema(type = "string", minLength = 1, maxLength = 20))
     @Parameter(in = ParameterIn.QUERY, name ="page" ,schema = @Schema(type = "integer", minimum = "0"))
     @Parameter(in = ParameterIn.QUERY, name ="limit" ,schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
@@ -65,6 +65,6 @@ public class SearchController {
                     response.put("tracks", tracks);
                     return response;
                 });
-    }
+    }*/
 
 }
