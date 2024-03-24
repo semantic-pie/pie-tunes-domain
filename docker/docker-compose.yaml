@@ -4,3 +4,4 @@ services:
     image: pie-tunes-domain:latest
     container_name: "pie-tunes-domain"
     network_mode: host
+    restart: always
