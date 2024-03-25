@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -27,22 +29,30 @@ public class SearchController {
 
     private final SearchItemsRepository searchItemsRepository;
 
-   /* @GetMapping("/search")
-    @Parameter(in = ParameterIn.QUERY, name ="query" ,schema = @Schema(type = "string", minLength = 1, maxLength = 20))
-    @Parameter(in = ParameterIn.QUERY, name ="page" ,schema = @Schema(type = "integer", minimum = "0"))
-    @Parameter(in = ParameterIn.QUERY, name ="limit" ,schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
-    public Mono<Map<String, List<SearchEntityResponse>>> test(@RequestParam(value = "query") String searchQuery,
-                                                              @RequestParam(defaultValue = "0") int page,
-                                                              @RequestParam(defaultValue = "8") int limit) {
+    @GetMapping("/search")
+    @Parameter(in = ParameterIn.QUERY, name = "q", schema = @Schema(type = "string", minLength = 1, maxLength = 20))
+    @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(type = "integer", minimum = "0"))
+    @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
+    public Mono<ResponseEntity<Map<String, List<SearchEntityResponse>>>>
+    globalSearchItems(@RequestParam(value = "q") String searchQuery,
+                      @RequestParam(defaultValue = "0") int page,
+                      @RequestParam(defaultValue = "8") int limit) {
+
         Pageable pageable = PageRequest.of(page, limit);
         List<SearchEntityResponse> albums = new ArrayList<>();
         List<SearchEntityResponse> bands = new ArrayList<>();
         List<SearchEntityResponse> tracks = new ArrayList<>();
 
-        return searchItemsRepository.findAllMatches(searchQuery, pageable)
-                .collectList()
-                .map(items -> {
-                    for (SearchEntityResponse item : items) {
+        Mono<Long> totalAlbums = searchItemsRepository.findTotalAllMatchedAlbums(searchQuery);
+        Mono<Long> totalBands = searchItemsRepository.findTotalAllMatchedBands(searchQuery);
+        Mono<Long> totalTracks = searchItemsRepository.findTotalAllMatchedTracks(searchQuery);
+
+        Flux<SearchEntityResponse> repositoryResponse = searchItemsRepository.findAllMatches(searchQuery, pageable);
+
+        return Mono.zip(repositoryResponse.collectList(), totalAlbums, totalBands, totalTracks)
+                .map(tuple -> {
+
+                    for (SearchEntityResponse item : tuple.getT1()) {
                         String itemType = item.getEntityType().name();
                         switch (itemType) {
                             case "ALBUM":
@@ -63,8 +73,13 @@ public class SearchController {
                     response.put("albums", albums);
                     response.put("bands", bands);
                     response.put("tracks", tracks);
-                    return response;
+                    return ResponseEntity.ok()
+                            .header("X-Total-Albums-Count", String.valueOf(tuple.getT2()))
+                            .header("X-Total-Bands-Count", String.valueOf(tuple.getT3()))
+                            .header("X-Total-Tracks-Count", String.valueOf(tuple.getT4()))
+                            .body(response);
                 });
-    }*/
+
+    }
 
 }
