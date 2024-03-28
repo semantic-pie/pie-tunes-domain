@@ -2,6 +2,17 @@ version: "3.7"
 services:
   pie-tunes-domain:
     image: pie-tunes-domain:latest
-    container_name: "pie-tunes-domain"
-    network_mode: host
+    container_name: "pie-tunes-domain-prod"
+    networks:
+      - pie-tunes-network-prod
+    ports:
+      - "8080:8080"
     restart: always
+    environment:
+      - NEO4J_URL=bolt://pie-tunes-neo4j-prod:7687
+      - MINIO_URL=http://pie-tunes-minio-prod:9000
+
+networks:
+  pie-tunes-network-prod:
+    name: pie-tunes-network-prod
+    external: true
