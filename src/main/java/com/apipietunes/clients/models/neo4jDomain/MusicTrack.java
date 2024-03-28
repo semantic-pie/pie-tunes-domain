@@ -42,6 +42,7 @@ public class MusicTrack {
 
     @Relationship(type = "HAS_TRACK", direction = Relationship.Direction.INCOMING)
     @JsonProperty("band")
+//    @JsonIgnore
     private MusicBand musicBand;
 
     @Relationship(type = "CONTAINS", direction = Relationship.Direction.INCOMING)

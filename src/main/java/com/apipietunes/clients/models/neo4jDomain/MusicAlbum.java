@@ -39,6 +39,5 @@ public class MusicAlbum {
     private int yearOfRecord;
 
     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
-    @JsonIgnore
     private MusicBand musicBand;
 }

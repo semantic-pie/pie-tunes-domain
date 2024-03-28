@@ -1,9 +1,7 @@
 package com.apipietunes.clients.controllers;
 
-import com.apipietunes.clients.models.dtos.SearchEntityResponse;
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
 import com.apipietunes.clients.repositories.neo4j.MusicAlbumRepository;
-import com.apipietunes.clients.repositories.neo4j.SearchItemsRepository;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,10 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 
 @Slf4j
 @RestController
@@ -30,7 +24,6 @@ import java.util.Map;
 public class AlbumsController {
 
     private final MusicAlbumRepository musicAlbumRepository;
-    private final SearchItemsRepository searchItemsRepository;
 
     @Deprecated
     @GetMapping()
@@ -46,26 +39,24 @@ public class AlbumsController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public Mono<ResponseEntity<Map<String, List<SearchEntityResponse>>>>
+    public ResponseEntity<Flux<MusicAlbum>>
     findAlbumsByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
-                     @RequestParam(defaultValue = "16") String order,
+                     @RequestParam(defaultValue = "desc") String order,
                      @RequestParam String userUuid) {
 
         Sort sort = Sort.by(Sort.Direction.fromString(order.toLowerCase()), "r.createdAt");
         Pageable pageable = PageRequest.of(page, limit, sort);
-        return searchItemsRepository.findAllLikedAlbums(userUuid, pageable)
-                .collectList()
-                .zipWith(searchItemsRepository.findTotalLikedAlbums(userUuid))
-                .map(tuple -> {
-                    Map<String, List<SearchEntityResponse>> response = new HashMap<>();
-                    response.put("liked_albums", tuple.getT1());
-                    long total = tuple.getT2();
 
-                    return ResponseEntity.ok()
-                            .header("X-Total-Count", String.valueOf(total))
-                            .body(response);
-                });
+        Mono<Long> totalLikedAlbums =
+                musicAlbumRepository.findTotalLikedAlbums(userUuid);
+
+        Flux<MusicAlbum> allLikedAlbums =
+                musicAlbumRepository.findAllLikedAlbums(userUuid, pageable);
+
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(totalLikedAlbums.block()))
+                .body(allLikedAlbums);
     }
 
     @GetMapping("/find-by-title")
@@ -74,24 +65,22 @@ public class AlbumsController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public Mono<ResponseEntity<Map<String, List<SearchEntityResponse>>>>
+    public ResponseEntity<Flux<MusicAlbum>>
     findAlbumsByTitle(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
                       @RequestParam(value = "q") String query,
                       @RequestParam String userUuid) {
 
         Pageable pageable = PageRequest.of(page, limit);
-        return searchItemsRepository.findAllLikedAlbumsByTitle(query, userUuid, pageable)
-                .collectList()
-                .zipWith(searchItemsRepository.findTotalLikedAlbumsByTitle(query, userUuid))
-                .map(tuple -> {
-                    Map<String, List<SearchEntityResponse>> response = new HashMap<>();
-                    response.put("found_albums", tuple.getT1());
-                    long total = tuple.getT2();
 
-                    return ResponseEntity.ok()
-                            .header("X-Total-Count", String.valueOf(total))
-                            .body(response);
-                });
+        Mono<Long> totalLikedAlbumsByTitle =
+                musicAlbumRepository.findTotalLikedAlbumsByTitle(query, userUuid);
+
+        Flux<MusicAlbum> allLikedAlbumsByTitle =
+                musicAlbumRepository.findAllLikedAlbumsByTitle(query, userUuid, pageable);
+
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(totalLikedAlbumsByTitle.block()))
+                .body(allLikedAlbumsByTitle);
     }
 }

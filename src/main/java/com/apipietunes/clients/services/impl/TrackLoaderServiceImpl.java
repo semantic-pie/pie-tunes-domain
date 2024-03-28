@@ -1,10 +1,7 @@
 package com.apipietunes.clients.services.impl;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import io.minio.*;
@@ -23,7 +20,7 @@ import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 import com.apipietunes.clients.repositories.neo4j.MusicAlbumRepository;
 import com.apipietunes.clients.repositories.neo4j.MusicBandRepository;
 import com.apipietunes.clients.repositories.neo4j.MusicGenreRepository;
-import com.apipietunes.clients.repositories.neo4j.TrackMetadataRepository;
+import com.apipietunes.clients.repositories.neo4j.MusicTrackRepository;
 import com.apipietunes.clients.services.TrackLoaderService;
 import com.apipietunes.clients.services.exceptions.NodeAlreadyExists;
 import com.apipietunes.clients.utils.TrackMetadataParser;
@@ -48,7 +45,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
     public String COVERS_BUCKET;
 
     private final MinioClient minioClient;
-    private final TrackMetadataRepository trackMetadataRepository;
+    private final MusicTrackRepository musicTrackRepository;
     private final MusicBandRepository musicBandRepository;
     private final MusicGenreRepository musicGenreRepository;
     private final MusicAlbumRepository musicAlbumRepository;
@@ -76,7 +73,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
             MusicTrack musicTrack = result.getMusicTrack();
             musicTrack.setReleaseYear("1988");
 
-            return trackMetadataRepository
+            return musicTrackRepository
                     .findByTitleAndMusicBand_Name(
                             musicTrack.getTitle(),
                             musicTrack.getMusicBand().getName())
@@ -128,7 +125,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
 
                     musicTrack.setGenres(new HashSet<>(tuple.getT3()));
 
-                    return trackMetadataRepository.save(musicTrack);
+                    return musicTrackRepository.save(musicTrack);
                 });
     }
 
