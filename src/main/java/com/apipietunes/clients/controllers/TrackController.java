@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,7 +48,7 @@ public class TrackController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public Mono<ResponseEntity<Map<String, List<SearchEntityResponse>>>>
+    public ResponseEntity<Flux<MusicTrack>>
     findTracksByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
                      @RequestParam(defaultValue = "desc") String order,
@@ -55,18 +56,12 @@ public class TrackController {
 
         Sort sort = Sort.by(Sort.Direction.fromString(order.toLowerCase()), "r.createdAt");
         Pageable pageable = PageRequest.of(page, limit, sort);
-        return searchItemsRepository.findAllLikedTracks(userUuid, pageable)
-                .collectList()
-                .zipWith(searchItemsRepository.findTotalLikedTracks(userUuid))
-                .map(tuple -> {
-                    Map<String, List<SearchEntityResponse>> response = new HashMap<>();
-                    response.put("liked_tracks", tuple.getT1());
-                    long total = tuple.getT2();
+        Mono<Long> totalLikedTracks = trackMetadataRepository.findTotalLikedTracks(userUuid);
+        Flux<MusicTrack> allLikedTracks = trackMetadataRepository.findAllLikedTracks(userUuid, pageable);
 
-                    return ResponseEntity.ok()
-                            .header("X-Total-Count", String.valueOf(total))
-                            .body(response);
-                });
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(totalLikedTracks.block()))
+                .body(allLikedTracks);
     }
 
     @GetMapping("/find-by-title")

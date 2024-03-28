@@ -1,5 +1,6 @@
 package com.apipietunes.clients.models.neo4jDomain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import org.springframework.data.annotation.Version;
@@ -16,11 +17,12 @@ import java.util.Set;
 @Setter
 public class MusicGenre {
 
-    @Version
-    private Long version;
-
     @Id
     @NonNull
     private String name;
+
+    @Version
+    @JsonIgnore
+    private Long version;
 
 }

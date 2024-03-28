@@ -1,5 +1,6 @@
 package com.apipietunes.clients.models.neo4jDomain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -26,6 +27,7 @@ public class MusicAlbum {
     private UUID uuid;
 
     @Version
+    @JsonIgnore
     private Long version;
 
     private String name;
@@ -37,5 +39,6 @@ public class MusicAlbum {
     private int yearOfRecord;
 
     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
+    @JsonIgnore
     private MusicBand musicBand;
 }

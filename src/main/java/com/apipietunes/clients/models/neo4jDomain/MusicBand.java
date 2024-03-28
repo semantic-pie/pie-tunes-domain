@@ -1,5 +1,6 @@
 package com.apipietunes.clients.models.neo4jDomain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,6 +26,7 @@ public class MusicBand {
     private UUID uuid;
 
     @Version
+    @JsonIgnore
     private Long version;
 
     private String name;
