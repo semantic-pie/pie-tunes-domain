@@ -2,7 +2,6 @@ package com.apipietunes.clients.handlers;
 
 import com.apipietunes.clients.services.exceptions.ActionEventException;
 import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
