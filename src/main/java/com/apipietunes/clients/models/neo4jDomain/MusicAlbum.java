@@ -13,7 +13,6 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import org.springframework.lang.Nullable;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Node("Album")
