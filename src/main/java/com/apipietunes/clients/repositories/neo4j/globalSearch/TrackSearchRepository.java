@@ -64,8 +64,6 @@ public interface TrackSearchRepository extends ReactiveNeo4jRepository<TrackSear
                     .uuid
                 }]
             }
-            LIMIT 4
-           
             """)
     Flux<TrackSearchDto> findAllByName(String userUuid, String searchQuery);
 }
