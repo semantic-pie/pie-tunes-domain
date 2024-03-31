@@ -37,7 +37,35 @@ public interface TrackSearchRepository extends ReactiveNeo4jRepository<TrackSear
                     .uuid
                 }]
             }
+            
+            UNION
+            MATCH (trackSearchDto:Track)<-[:HAS_TRACK]-(trackSearchDto_band:Band)
+            WHERE toLower(trackSearchDto_band.name) CONTAINS toLower($searchQuery)
+            OPTIONAL MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(trackSearchDto:Track)
+            WITH trackSearchDto, COUNT(r) AS isLiked, trackSearchDto_band
+            RETURN trackSearchDto{
+                .uuid,
+                .title,
+                .releaseYear,
+                .bitrate,
+                .lengthInMilliseconds,
+                isLiked: CASE WHEN isLiked > 0 THEN true ELSE false END,
+            TrackSearchDto_ALBUM_AlbumSearchDto: [(trackSearchDto)<-[:CONTAINS]-(trackSearchDto_album:Album) | trackSearchDto_album {
+                    .description,
+                    .isLiked,
+                    .name,
+                    .uuid,
+                    .yearOfRecord
+                }],
+            TrackSearchDto_BAND_BandSearchDto: [trackSearchDto_band {
+                    .description,
+                    .isLiked,
+                    .name,
+                    .uuid
+                }]
+            }
             LIMIT 4
+           
             """)
     Flux<TrackSearchDto> findAllByName(String userUuid, String searchQuery);
 }
