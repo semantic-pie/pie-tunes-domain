@@ -74,10 +74,10 @@ public class AlbumsController {
         Pageable pageable = PageRequest.of(page, limit);
 
         Mono<Long> totalLikedAlbumsByTitle =
-                musicAlbumRepository.findTotalLikedAlbumsByTitle(query, userUuid);
+                musicAlbumRepository.findTotalLikedAlbumsByTitle(query.toLowerCase(), userUuid);
 
         Flux<MusicAlbum> allLikedAlbumsByTitle =
-                musicAlbumRepository.findAllLikedAlbumsByTitle(query, userUuid, pageable);
+                musicAlbumRepository.findAllLikedAlbumsByTitle(query.toLowerCase(), userUuid, pageable);
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedAlbumsByTitle.block()))

@@ -34,9 +34,9 @@ public class SearchController {
     public Mono<SearchEntityResponse>
     globalSearchItems(@RequestParam(value = "q") String searchQuery, @RequestParam String userUuid) {
 
-        Flux<TrackSearchDto> tracks = trackSearchRepository.findAllByName(userUuid, searchQuery);
-        Flux<AlbumSearchDto> albums = albumSearchRepository.findAllByName(userUuid, searchQuery);
-        Flux<BandSearchDto> bands = bandSearchRepository.findAllByName(userUuid, searchQuery);
+        Flux<TrackSearchDto> tracks = trackSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
+        Flux<AlbumSearchDto> albums = albumSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
+        Flux<BandSearchDto> bands = bandSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
 
         return Mono.zip(tracks.collectList(), albums.collectList(), bands.collectList())
                 .map(tuple -> {
