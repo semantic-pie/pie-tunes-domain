@@ -34,6 +34,14 @@ public class TrackController {
         return musicTrackRepository.findAll().skip(page * limit).take(limit);
     }
 
+    @GetMapping("/{uuid}")
+    @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Track uuid")
+    public ResponseEntity<Mono<MusicTrack>>
+    findTrackByUuid(@PathVariable String uuid) {
+        return ResponseEntity.ok()
+                .body(musicTrackRepository.findMusicTrackByUuid(uuid));
+    }
+
     @GetMapping("/find-by-date")
     @Parameter(in = ParameterIn.QUERY, name = "order", schema = @Schema(type = "string", allowableValues = {"asc", "desc"}))
     @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(type = "integer", minimum = "0"))
