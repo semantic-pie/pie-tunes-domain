@@ -175,7 +175,7 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
     Flux<MusicTrack> findTracksByAlbumUuid(String albumUuid);
 
     @Query("""
-            MATCH (musicTrack:Track {uuid: $trackUuid})<-[:HAS_TRACK]-(band:Band)
+            MATCH (album:Album)-[:CONTAINS]->(musicTrack:Track {uuid: $trackUuid})<-[:HAS_TRACK]-(band:Band)
             RETURN musicTrack{
              .bitrate,
              .lengthInMilliseconds,
@@ -185,6 +185,15 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
              .version,
              __nodeLabels__: labels(musicTrack),
              __elementId__: id(musicTrack),
+             Track_CONTAINS_Album: [album{
+                 .description,
+                 .name,
+                 .uuid,
+                 .version,
+                 .yearOfRecord,
+                 __nodeLabels__: labels(album),
+                 __elementId__: id(album)
+             }],
              Track_HAS_TRACK_Band: [band{
                  .description,
                  .name,
