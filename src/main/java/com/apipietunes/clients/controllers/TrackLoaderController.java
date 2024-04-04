@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 
+import com.apipietunes.clients.models.dtos.TrackLoaderResponseDto;
 import com.apipietunes.clients.services.TrackLoaderService;
 
 import lombok.AllArgsConstructor;
@@ -32,7 +33,7 @@ public class TrackLoaderController {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(description = "Upload single multipart file.")
   @PostMapping(value = "/track-loader/upload-one", consumes = "multipart/form-data")
-  public Mono<Void> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
-    return filePartFlux.flatMap(trackLoaderService::save).then();
+  public Mono<TrackLoaderResponseDto> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
+    return filePartFlux.flatMap(trackLoaderService::save).map(TrackLoaderResponseDto::new);
   }
 }
