@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @AllArgsConstructor
+@CrossOrigin(origins = "origins", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST}, allowedHeaders = {"*"})
 @RequestMapping(path = "/api/v1/domain/users")
 public class UserController {
 

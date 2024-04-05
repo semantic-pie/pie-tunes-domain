@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "origins", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST}, allowedHeaders = {"*"})
 @AllArgsConstructor
 @RequestMapping(path = "/api/v1")
 public class SearchController {

@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "origins", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST}, allowedHeaders = {"*"})
 @AllArgsConstructor
 @RequestMapping("/api/v1/library/tracks")
 public class TrackController {

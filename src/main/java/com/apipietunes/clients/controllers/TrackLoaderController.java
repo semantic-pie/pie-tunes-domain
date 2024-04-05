@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "origins", allowCredentials = "true", methods = {RequestMethod.GET, RequestMethod.POST}, allowedHeaders = {"*"})
 @RequestMapping("/api")
 public class TrackLoaderController {
 

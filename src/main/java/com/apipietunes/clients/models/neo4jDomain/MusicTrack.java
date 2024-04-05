@@ -12,6 +12,7 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,7 +39,7 @@ public class MusicTrack {
     private Long lengthInMilliseconds;
 
     @Relationship(type = "IN_GENRE", direction = Relationship.Direction.OUTGOING)
-    private Set<MusicGenre> genres;
+    private List<MusicGenre> genres;
 
     @Relationship(type = "HAS_TRACK", direction = Relationship.Direction.INCOMING)
     @JsonProperty("band")
