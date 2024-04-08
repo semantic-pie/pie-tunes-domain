@@ -1,6 +1,7 @@
 package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
+import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 import com.apipietunes.clients.repositories.neo4j.MusicAlbumRepository;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -30,7 +31,15 @@ public class AlbumsController {
     public Flux<MusicAlbum> getMethodName(@RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "8") int limit) {
 
-        return musicAlbumRepository.findAll().skip(page).take(limit);
+        return musicAlbumRepository.findAllAlbums().skip(page).take(limit);
+    }
+
+    @GetMapping("/{uuid}")
+    @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Album uuid")
+    public ResponseEntity<Mono<MusicAlbum>>
+    findTrackByUuid(@PathVariable String uuid) {
+        return ResponseEntity.ok()
+                .body(musicAlbumRepository.findMusicAlbumByUuid(uuid));
     }
 
     @GetMapping("/find-by-date")

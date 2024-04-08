@@ -6,13 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
-
+import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
 
 public interface MusicAlbumRepository extends ReactiveNeo4jRepository<MusicAlbum, UUID> {
     @Query("""
@@ -92,4 +91,58 @@ public interface MusicAlbumRepository extends ReactiveNeo4jRepository<MusicAlbum
             LIMIT :#{#pageable.getPageSize()}
             """)
     Flux<MusicAlbum> findAllLikedAlbumsByTitle(String searchQuery, String userUuid, Pageable pageable);
+
+    @Query("""
+            MATCH (musicAlbum:Album)<-[:HAS_ALBUM]-(musicBand:Band)
+            RETURN musicAlbum{
+             .yearOfRecord,
+             .name,
+             .uuid,
+             .description,
+             .version,
+             __nodeLabels__: labels(musicAlbum),
+             __elementId__: id(musicAlbum),
+             Album_HAS_ALBUM_Band: [musicBand{
+                 .description,
+                 .name,
+                 .uuid,
+                 .version,
+                 __nodeLabels__: labels(musicBand),
+                 __elementId__: id(musicBand)
+             }]
+             }
+            """)
+    Flux<MusicAlbum> findAllAlbums();
+
+    @Query("""
+            MATCH (musicBand:Band)-[:HAS_ALBUM]->(musicAlbum:Album {uuid: $albumUuid})
+            RETURN musicAlbum{
+             .yearOfRecord,
+             .name,
+             .uuid,
+             .description,
+             .version,
+             __nodeLabels__: labels(musicAlbum),
+             __elementId__: id(musicAlbum),
+             Album_CONTAINS_Track: [(musicAlbum)-[:CONTAINS]->(musicAlbum_tracks:Track) | musicAlbum_tracks{
+                .bitrate,
+                .lengthInMilliseconds,
+                .releaseYear,
+                .title,
+                .uuid,
+                .version,
+                __nodeLabels__: labels(musicAlbum_tracks),
+                __elementId__: id(musicAlbum_tracks)
+             }],
+             Album_HAS_ALBUM_Band: [musicBand{
+                 .description,
+                 .name,
+                 .uuid,
+                 .version,
+                 __nodeLabels__: labels(musicBand),
+                 __elementId__: id(musicBand)
+             }]
+             }
+            """)
+    Mono<MusicAlbum> findMusicAlbumByUuid(String albumUuid);
 }
