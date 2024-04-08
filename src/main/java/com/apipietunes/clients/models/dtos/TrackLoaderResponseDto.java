@@ -1,7 +1,7 @@
 package com.apipietunes.clients.models.dtos;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 
+import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,5 +10,5 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class TrackLoaderResponseDto {
-    private final MusicTrack uploadedTrack;
+    private final MusicTrackDto uploadedTrack;
 }

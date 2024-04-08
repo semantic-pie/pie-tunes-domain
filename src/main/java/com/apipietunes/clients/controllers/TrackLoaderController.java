@@ -1,5 +1,7 @@
 package com.apipietunes.clients.controllers;
 
+import com.apipietunes.clients.models.mappers.MusicTrackDestinationMapper;
+import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
 import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.http.HttpStatus;
@@ -19,21 +21,27 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api")
 public class TrackLoaderController {
 
-  private final TrackLoaderService trackLoaderService;
+    private final TrackLoaderService trackLoaderService;
+    private final MusicTrackDestinationMapper musicTrackMapper;
 
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(description = "Upload multiple multipart files. (overflow is possible)")
-  @PostMapping(value = "/track-loader/upload", consumes = "multipart/form-data")
-  public Mono<Void> handleFilesUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
-    return filePartFlux.collectList()
-        .flatMap(trackLoaderService::saveAll)
-        .then();
-  }
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(description = "Upload multiple multipart files. (overflow is possible)")
+    @PostMapping(value = "/track-loader/upload", consumes = "multipart/form-data")
+    public Mono<Void> handleFilesUpload(@RequestPart("file") Flux<FilePart> filePartFlux) {
+        return filePartFlux.collectList()
+                .flatMap(trackLoaderService::saveAll)
+                .then();
+    }
 
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(description = "Upload single multipart file.")
-  @PostMapping(value = "/track-loader/upload-one", consumes = "multipart/form-data")
-  public Mono<TrackLoaderResponseDto> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
-    return filePartFlux.flatMap(trackLoaderService::save).map(TrackLoaderResponseDto::new);
-  }
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(description = "Upload single multipart file.")
+    @PostMapping(value = "/track-loader/upload-one", consumes = "multipart/form-data")
+    public Mono<TrackLoaderResponseDto> handleFileUpload(@RequestPart("file") Mono<FilePart> filePartFlux) {
+        return filePartFlux
+                .flatMap(trackLoaderService::save)
+                .map(savedTrack -> {
+                    MusicTrackDto trackDto = musicTrackMapper.sourceToDestination(savedTrack);
+                    return new TrackLoaderResponseDto(trackDto);
+                });
+    }
 }
