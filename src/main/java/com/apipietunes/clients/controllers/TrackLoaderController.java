@@ -1,6 +1,6 @@
 package com.apipietunes.clients.controllers;
 
-import com.apipietunes.clients.models.mappers.MusicTrackDestinationMapper;
+import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
 import io.swagger.v3.oas.annotations.Operation;
 
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 public class TrackLoaderController {
 
     private final TrackLoaderService trackLoaderService;
-    private final MusicTrackDestinationMapper musicTrackMapper;
+    private final DomainEntityMapper domainEntityMapper;
 
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(description = "Upload multiple multipart files. (overflow is possible)")
@@ -40,7 +40,7 @@ public class TrackLoaderController {
         return filePartFlux
                 .flatMap(trackLoaderService::save)
                 .map(savedTrack -> {
-                    MusicTrackDto trackDto = musicTrackMapper.sourceToDestination(savedTrack);
+                    MusicTrackDto trackDto = domainEntityMapper.outerTrack(savedTrack);
                     return new TrackLoaderResponseDto(trackDto);
                 });
     }

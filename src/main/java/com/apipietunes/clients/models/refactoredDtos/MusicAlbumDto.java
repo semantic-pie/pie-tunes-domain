@@ -22,7 +22,7 @@ public class MusicAlbumDto {
 
     private int yearOfRecord;
 
-    private boolean isLiked;
+    private Boolean isLiked;
 
     private InnerBandDto musicBand;
 

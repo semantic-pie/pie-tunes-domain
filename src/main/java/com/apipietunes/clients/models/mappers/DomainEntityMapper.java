@@ -54,4 +54,17 @@ public interface DomainEntityMapper {
     @Mapping(target = "musicBand", source = "musicBand", qualifiedByName = "innerBand")
     MusicTrackDto outerTrack(MusicTrack source);
 
+    @Mapping(target = "uuid", source = "uuid")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "albums", source = "albums", qualifiedByName = "innerAlbum")
+    MusicBandDto outerBand(MusicBand source);
+
+    @Mapping(target = "uuid", source = "uuid")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "yearOfRecord", source = "yearOfRecord")
+    @Mapping(target = "tracks", source = "tracks", qualifiedByName = "innerTrack")
+    @Mapping(target = "musicBand", source = "musicBand", qualifiedByName = "innerBand")
+    MusicAlbumDto outerAlbum(MusicAlbum source);
 }

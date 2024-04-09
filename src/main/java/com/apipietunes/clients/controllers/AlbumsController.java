@@ -1,7 +1,8 @@
 package com.apipietunes.clients.controllers;
 
+import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.refactoredDtos.MusicAlbumDto;
 import com.apipietunes.clients.repositories.neo4j.MusicAlbumRepository;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -25,21 +26,26 @@ import reactor.core.publisher.Mono;
 public class AlbumsController {
 
     private final MusicAlbumRepository musicAlbumRepository;
+    private final DomainEntityMapper entityMapper;
+
 
     @Deprecated
     @GetMapping()
-    public Flux<MusicAlbum> getMethodName(@RequestParam(defaultValue = "0") int page,
+    public Flux<MusicAlbumDto> getMethodName(@RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "8") int limit) {
 
-        return musicAlbumRepository.findAllAlbums().skip(page).take(limit);
+        Pageable pageable = PageRequest.of(page, limit);
+        return musicAlbumRepository.findAllAlbums(pageable)
+                .map(entityMapper::outerAlbumWithoutTracks);
     }
 
     @GetMapping("/{uuid}")
     @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Album uuid")
-    public ResponseEntity<Mono<MusicAlbum>>
+    public ResponseEntity<Mono<MusicAlbumDto>>
     findTrackByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok()
-                .body(musicAlbumRepository.findMusicAlbumByUuid(uuid));
+                .body(musicAlbumRepository.findMusicAlbumByUuid(uuid)
+                        .map(entityMapper::outerAlbum));
     }
 
     @GetMapping("/find-by-date")
@@ -48,7 +54,7 @@ public class AlbumsController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicAlbum>>
+    public ResponseEntity<Flux<MusicAlbumDto>>
     findAlbumsByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
                      @RequestParam(defaultValue = "desc") String order,
@@ -65,7 +71,11 @@ public class AlbumsController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedAlbums.block()))
-                .body(allLikedAlbums);
+                .body(allLikedAlbums.map(foundAlbum -> {
+                    MusicAlbumDto albumDto = entityMapper.outerAlbumWithoutTracks(foundAlbum);
+                    albumDto.setIsLiked(true);
+                    return albumDto;
+                }));
     }
 
     @GetMapping("/find-by-title")
@@ -74,7 +84,7 @@ public class AlbumsController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicAlbum>>
+    public ResponseEntity<Flux<MusicAlbumDto>>
     findAlbumsByTitle(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
                       @RequestParam(value = "q") String query,
@@ -90,6 +100,12 @@ public class AlbumsController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedAlbumsByTitle.block()))
-                .body(allLikedAlbumsByTitle);
+                .body(allLikedAlbumsByTitle.map(foundAlbum -> {
+                    MusicAlbumDto albumDto = entityMapper.outerAlbumWithoutTracks(foundAlbum);
+                    albumDto.setIsLiked(true);
+                    return albumDto;
+                }));
+
+
     }
 }

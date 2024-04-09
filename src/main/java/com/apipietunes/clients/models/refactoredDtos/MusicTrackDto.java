@@ -23,7 +23,7 @@ public class MusicTrackDto {
 
     private Long lengthInMilliseconds;
 
-    private boolean isLiked;
+    private Boolean isLiked;
 
     private InnerAlbumDto musicAlbum;
 

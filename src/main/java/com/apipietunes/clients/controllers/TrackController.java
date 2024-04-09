@@ -1,6 +1,8 @@
 package com.apipietunes.clients.controllers;
 
+import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
 import com.apipietunes.clients.repositories.neo4j.MusicTrackRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,20 +28,25 @@ import reactor.core.publisher.Mono;
 public class TrackController {
 
     private final MusicTrackRepository musicTrackRepository;
+    private final DomainEntityMapper entityMapper;
 
     @Deprecated
     @GetMapping()
-    public Flux<MusicTrack> getMethodName(@RequestParam(defaultValue = "0") long page,
-                                          @RequestParam(defaultValue = "8") long limit) {
-        return musicTrackRepository.findAll().skip(page * limit).take(limit);
+    public Flux<MusicTrackDto> getMethodName(@RequestParam(defaultValue = "0") int page,
+                                             @RequestParam(defaultValue = "8") int limit) {
+
+        Pageable pageable = PageRequest.of(page, limit);
+        return musicTrackRepository.findAllTracks(pageable)
+                .map(entityMapper::outerTrack);
     }
 
     @GetMapping("/{uuid}")
     @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Track uuid")
-    public ResponseEntity<Mono<MusicTrack>>
+    public ResponseEntity<Mono<MusicTrackDto>>
     findTrackByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok()
-                .body(musicTrackRepository.findMusicTrackByUuid(uuid));
+                .body(musicTrackRepository.findMusicTrackByUuid(uuid)
+                        .map(entityMapper::outerTrack));
     }
 
     @GetMapping("/find-by-date")
@@ -48,7 +55,7 @@ public class TrackController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicTrack>>
+    public ResponseEntity<Flux<MusicTrackDto>>
     findTracksByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
                      @RequestParam(defaultValue = "desc") String order,
@@ -65,7 +72,11 @@ public class TrackController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedTracks.block()))
-                .body(allLikedTracks);
+                .body(allLikedTracks.map(foundTrack -> {
+                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    trackDto.setIsLiked(true);
+                    return trackDto;
+                }));
     }
 
     @GetMapping("/find-by-title")
@@ -74,7 +85,7 @@ public class TrackController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicTrack>>
+    public ResponseEntity<Flux<MusicTrackDto>>
     findTracksByTitle(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
                       @RequestParam(value = "q") String query,
@@ -90,13 +101,17 @@ public class TrackController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedTracksByTitle.block()))
-                .body(allLikedTracksByTitle);
+                .body(allLikedTracksByTitle.map(foundTrack -> {
+                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    trackDto.setIsLiked(true);
+                    return trackDto;
+                }));
     }
 
     @GetMapping("/find-by-album/{uuid}")
     @Operation(description = "Find all tracks of album with uuid.")
     @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Album uuid")
-    public ResponseEntity<Flux<MusicTrack>>
+    public ResponseEntity<Flux<MusicTrackDto>>
     findTracksByAlbum(@PathVariable String uuid) {
 
         Mono<Long> totalTracksInAlbum =
@@ -107,6 +122,10 @@ public class TrackController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalTracksInAlbum.block()))
-                .body(allTracksInAlbum);
+                .body(allTracksInAlbum.map(foundTrack -> {
+                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    trackDto.setIsLiked(true);
+                    return trackDto;
+                }));
     }
 }

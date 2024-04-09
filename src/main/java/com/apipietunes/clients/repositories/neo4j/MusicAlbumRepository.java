@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
 
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
@@ -111,8 +110,10 @@ public interface MusicAlbumRepository extends ReactiveNeo4jRepository<MusicAlbum
                  __elementId__: id(musicBand)
              }]
              }
+            SKIP :#{#pageable.getPageNumber()}*:#{#pageable.getPageSize()}
+            LIMIT :#{#pageable.getPageSize()}
             """)
-    Flux<MusicAlbum> findAllAlbums();
+    Flux<MusicAlbum> findAllAlbums(Pageable pageable);
 
     @Query("""
             MATCH (musicBand:Band)-[:HAS_ALBUM]->(musicAlbum:Album {uuid: $albumUuid})

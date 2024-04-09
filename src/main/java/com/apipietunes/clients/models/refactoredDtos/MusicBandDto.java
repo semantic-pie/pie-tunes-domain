@@ -20,7 +20,7 @@ public class MusicBandDto {
 
     private String description;
 
-    private boolean isLiked;
+    private Boolean isLiked;
 
     private Set<InnerAlbumDto> albums;
 }
