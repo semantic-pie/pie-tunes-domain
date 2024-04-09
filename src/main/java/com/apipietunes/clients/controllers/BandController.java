@@ -1,6 +1,8 @@
 package com.apipietunes.clients.controllers;
 
+import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.neo4jDomain.MusicBand;
+import com.apipietunes.clients.models.dtos.domain.MusicBandDto;
 import com.apipietunes.clients.repositories.neo4j.MusicBandRepository;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -25,13 +27,26 @@ import reactor.core.publisher.Mono;
 public class BandController {
 
     private final MusicBandRepository musicBandRepository;
+    private final DomainEntityMapper entityMapper;
 
     @Deprecated
     @GetMapping()
-    public Flux<MusicBand> getMethodName(@RequestParam(defaultValue = "0") int page,
+    public Flux<MusicBandDto> getMethodName(@RequestParam(defaultValue = "0") int page,
                                          @RequestParam(defaultValue = "8") int limit) {
 
-        return musicBandRepository.findAll().skip(page).take(limit);
+        Pageable pageable = PageRequest.of(page, limit);
+        return musicBandRepository.findAllBands(pageable)
+                .map(entityMapper::outerBandWithoutAlbums);
+    }
+
+
+    @GetMapping("/{uuid}")
+    @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Band uuid")
+    public ResponseEntity<Mono<MusicBandDto>>
+    findTrackByUuid(@PathVariable String uuid) {
+        return ResponseEntity.ok()
+                .body(musicBandRepository.findMusicBandByUuid(uuid)
+                        .map(entityMapper::outerBand));
     }
 
     @GetMapping("/find-by-date")
@@ -40,7 +55,7 @@ public class BandController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicBand>>
+    public ResponseEntity<Flux<MusicBandDto>>
     findArtistsByDate(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
                       @RequestParam(defaultValue = "desc") String order,
@@ -57,7 +72,11 @@ public class BandController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedBands.block()))
-                .body(allLikedBands);
+                .body(allLikedBands.map(foundBand -> {
+                    MusicBandDto bandDto = entityMapper.outerBandWithoutAlbums(foundBand);
+                    bandDto.setIsLiked(true);
+                    return bandDto;
+                }));
     }
 
     @GetMapping("/find-by-title")
@@ -66,7 +85,7 @@ public class BandController {
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
     @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     // This user-cringe uuid parameter will be deleted after security implementation
-    public ResponseEntity<Flux<MusicBand>>
+    public ResponseEntity<Flux<MusicBandDto>>
     findByTitle(@RequestParam(defaultValue = "0") int page,
                 @RequestParam(defaultValue = "16") int limit,
                 @RequestParam(value = "q") String query,
@@ -82,7 +101,11 @@ public class BandController {
 
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedBandsByTitle.block()))
-                .body(allLikedBandsByTitle);
+                .body(allLikedBandsByTitle.map(foundBand -> {
+                    MusicBandDto bandDto = entityMapper.outerBandWithoutAlbums(foundBand);
+                    bandDto.setIsLiked(true);
+                    return bandDto;
+                }));
     }
 
 }

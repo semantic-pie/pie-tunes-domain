@@ -14,6 +14,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import org.springframework.lang.Nullable;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Node("Album")
@@ -37,6 +38,10 @@ public class MusicAlbum {
 
     @Nullable
     private int yearOfRecord;
+
+    @Nullable
+    @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
+    private Set<MusicTrack> tracks;
 
     @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
     @JsonProperty("band")

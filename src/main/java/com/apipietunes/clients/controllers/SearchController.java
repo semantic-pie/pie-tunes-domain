@@ -1,9 +1,9 @@
 package com.apipietunes.clients.controllers;
 
-import com.apipietunes.clients.models.dtos.globalSearch.AlbumSearchDto;
-import com.apipietunes.clients.models.dtos.globalSearch.BandSearchDto;
-import com.apipietunes.clients.models.dtos.globalSearch.SearchEntityResponse;
-import com.apipietunes.clients.models.dtos.globalSearch.TrackSearchDto;
+import com.apipietunes.clients.models.dtos.SearchEntityResponse;
+import com.apipietunes.clients.models.dtos.domain.MusicAlbumDto;
+import com.apipietunes.clients.models.dtos.domain.MusicBandDto;
+import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
 import com.apipietunes.clients.repositories.neo4j.globalSearch.AlbumSearchRepository;
 import com.apipietunes.clients.repositories.neo4j.globalSearch.BandSearchRepository;
 import com.apipietunes.clients.repositories.neo4j.globalSearch.TrackSearchRepository;
@@ -34,9 +34,9 @@ public class SearchController {
     public Mono<SearchEntityResponse>
     globalSearchItems(@RequestParam(value = "q") String searchQuery, @RequestParam String userUuid) {
 
-        Flux<TrackSearchDto> tracks = trackSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase()).take(4);
-        Flux<AlbumSearchDto> albums = albumSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
-        Flux<BandSearchDto> bands = bandSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
+        Flux<MusicTrackDto> tracks = trackSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase()).take(4);
+        Flux<MusicAlbumDto> albums = albumSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
+        Flux<MusicBandDto> bands = bandSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
 
         return Mono.zip(tracks.collectList(), albums.collectList(), bands.collectList())
                 .map(tuple -> {

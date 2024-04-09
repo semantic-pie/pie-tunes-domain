@@ -67,4 +67,40 @@ public interface MusicBandRepository extends ReactiveNeo4jRepository<MusicBand, 
             """)
     Flux<MusicBand> findAllLikedBandsByTitle(String searchQuery, String userUuid, Pageable pageable);
 
+    @Query("""
+            MATCH (musicBand:Band)
+            RETURN musicBand{
+             .name,
+             .uuid,
+             .description,
+             __nodeLabels__: labels(musicBand),
+             __elementId__: id(musicBand)
+             }
+            SKIP :#{#pageable.getPageNumber()}*:#{#pageable.getPageSize()}
+            LIMIT :#{#pageable.getPageSize()}
+            """)
+    Flux<MusicBand> findAllBands(Pageable pageable);
+
+    @Query("""
+            MATCH (musicBand:Band {uuid: $bandUuid})
+            RETURN musicBand{
+             .yearOfRecord,
+             .name,
+             .uuid,
+             .description,
+             .version,
+             __nodeLabels__: labels(musicBand),
+             __elementId__: id(musicBand),
+             Band_HAS_ALBUM_Album: [(musicBand)-[:HAS_ALBUM]->(musicBand_albums:Album) | musicBand_albums{
+                .yearOfRecord,
+                .name,
+                .uuid,
+                .description,
+                .version,
+                __nodeLabels__: labels(musicBand_albums),
+                __elementId__: id(musicBand_albums)
+             }]
+             }
+            """)
+    Mono<MusicBand> findMusicBandByUuid(String bandUuid);
 }

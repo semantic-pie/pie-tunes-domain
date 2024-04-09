@@ -1,6 +1,6 @@
 package com.apipietunes.clients.repositories.neo4j.globalSearch;
 
-import com.apipietunes.clients.models.dtos.globalSearch.BandSearchDto;
+import com.apipietunes.clients.models.dtos.domain.MusicBandDto;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
@@ -9,14 +9,14 @@ import reactor.core.publisher.Flux;
 import java.util.UUID;
 
 @Repository
-public interface BandSearchRepository extends ReactiveNeo4jRepository<BandSearchDto, UUID> {
+public interface BandSearchRepository extends ReactiveNeo4jRepository<MusicBandDto, UUID> {
 
     @Query("""
-            MATCH (bandSearchDto:Band)
-            WHERE toLower(bandSearchDto.name) CONTAINS toLower($searchQuery)
-            OPTIONAL MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(bandSearchDto:Band)
-            WITH bandSearchDto, COUNT(r) AS isLiked
-            RETURN bandSearchDto{
+            MATCH (musicBandDto:Band)
+            WHERE toLower(musicBandDto.name) CONTAINS toLower($searchQuery)
+            OPTIONAL MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicBandDto:Band)
+            WITH musicBandDto, COUNT(r) AS isLiked
+            RETURN musicBandDto{
                 .uuid,
                 .name,
                 .description,
@@ -24,5 +24,5 @@ public interface BandSearchRepository extends ReactiveNeo4jRepository<BandSearch
             }
             LIMIT 4
             """)
-    Flux<BandSearchDto> findAllByName(String userUuid, String searchQuery);
+    Flux<MusicBandDto> findAllByName(String userUuid, String searchQuery);
 }

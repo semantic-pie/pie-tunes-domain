@@ -1,5 +1,7 @@
-package com.apipietunes.clients.models.dtos.globalSearch;
+package com.apipietunes.clients.models.dtos.domain;
 
+import com.apipietunes.clients.models.dtos.domain.inner.InnerAlbumDto;
+import com.apipietunes.clients.models.dtos.domain.inner.InnerBandDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TrackSearchDto {
+public class MusicTrackDto {
 
     @Id
     private UUID uuid;
@@ -23,11 +25,9 @@ public class TrackSearchDto {
 
     private Long lengthInMilliseconds;
 
-    private boolean isLiked;
+    private Boolean isLiked;
 
-    private AlbumSearchDto album;
+    private InnerAlbumDto musicAlbum;
 
-    private BandSearchDto band;
-
-
+    private InnerBandDto musicBand;
 }
