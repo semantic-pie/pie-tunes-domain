@@ -1,7 +1,7 @@
 package com.apipietunes.clients.models.dtos;
 
 
-import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
+import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

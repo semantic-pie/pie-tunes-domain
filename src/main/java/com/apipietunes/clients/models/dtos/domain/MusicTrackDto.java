@@ -1,5 +1,7 @@
-package com.apipietunes.clients.models.refactoredDtos;
+package com.apipietunes.clients.models.dtos.domain;
 
+import com.apipietunes.clients.models.dtos.domain.inner.InnerAlbumDto;
+import com.apipietunes.clients.models.dtos.domain.inner.InnerBandDto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

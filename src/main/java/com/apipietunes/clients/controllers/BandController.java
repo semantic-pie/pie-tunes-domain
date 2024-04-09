@@ -2,7 +2,7 @@ package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.neo4jDomain.MusicBand;
-import com.apipietunes.clients.models.refactoredDtos.MusicBandDto;
+import com.apipietunes.clients.models.dtos.domain.MusicBandDto;
 import com.apipietunes.clients.repositories.neo4j.MusicBandRepository;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

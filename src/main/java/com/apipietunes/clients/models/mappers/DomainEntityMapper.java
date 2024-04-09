@@ -1,9 +1,14 @@
 package com.apipietunes.clients.models.mappers;
 
+import com.apipietunes.clients.models.dtos.domain.MusicAlbumDto;
+import com.apipietunes.clients.models.dtos.domain.MusicBandDto;
+import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
+import com.apipietunes.clients.models.dtos.domain.inner.InnerAlbumDto;
+import com.apipietunes.clients.models.dtos.domain.inner.InnerBandDto;
+import com.apipietunes.clients.models.dtos.domain.inner.InnerTrackDto;
 import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
 import com.apipietunes.clients.models.neo4jDomain.MusicBand;
 import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
-import com.apipietunes.clients.models.refactoredDtos.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;

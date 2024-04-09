@@ -1,4 +1,4 @@
-package com.apipietunes.clients.models.refactoredDtos;
+package com.apipietunes.clients.models.dtos.domain.inner;
 
 
 import java.util.UUID;

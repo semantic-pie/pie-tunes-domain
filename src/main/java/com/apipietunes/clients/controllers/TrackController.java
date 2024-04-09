@@ -2,7 +2,7 @@ package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.mappers.DomainEntityMapper;
 import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
-import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
+import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
 import com.apipietunes.clients.repositories.neo4j.MusicTrackRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

@@ -1,7 +1,7 @@
 package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.mappers.DomainEntityMapper;
-import com.apipietunes.clients.models.refactoredDtos.MusicTrackDto;
+import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
 import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.http.HttpStatus;
