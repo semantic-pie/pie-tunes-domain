@@ -1,4 +1,4 @@
-package com.apipietunes.clients.models.neo4jDomain;
+package com.apipietunes.clients.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;

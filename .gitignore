@@ -42,6 +42,3 @@ out/
 
 ### Neo4j ###
 src/main/resources/neo4jdb/export/**
-
-### H2 ###
-/usersSql.mv.db

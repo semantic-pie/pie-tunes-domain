@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.http.codec.multipart.FilePart;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.MusicTrack;
 
 import reactor.core.publisher.Mono;
 

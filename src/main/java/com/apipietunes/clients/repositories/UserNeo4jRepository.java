@@ -1,7 +1,7 @@
-package com.apipietunes.clients.repositories.neo4j;
+package com.apipietunes.clients.repositories;
 
 
-import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
+import com.apipietunes.clients.models.UserNeo4j;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;

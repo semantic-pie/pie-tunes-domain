@@ -1,8 +1,7 @@
 package com.apipietunes.clients.controllers;
 
 
-import com.apipietunes.clients.models.dtos.UserSignUpRequest;
-import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
+import com.apipietunes.clients.models.dtos.SaveUserUuidRequest;
 import com.apipietunes.clients.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,8 +19,8 @@ public class UserController {
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<UserNeo4j> save(@RequestBody Mono<UserSignUpRequest> requestMono) {
-        return userService.createUser(requestMono);
+    public Mono<Void> saveUserUuid(@RequestBody SaveUserUuidRequest request) {
+        return userService.createUser(request);
     }
 
 
