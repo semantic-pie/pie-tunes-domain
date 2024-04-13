@@ -1,6 +1,6 @@
 package com.apipietunes.clients.utils;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.MusicTrack;
 
 import lombok.Builder;
 import lombok.Getter;

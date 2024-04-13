@@ -1,8 +1,8 @@
-package com.apipietunes.clients.repositories.neo4j;
+package com.apipietunes.clients.repositories;
 
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
+import com.apipietunes.clients.models.MusicGenre;
 
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;

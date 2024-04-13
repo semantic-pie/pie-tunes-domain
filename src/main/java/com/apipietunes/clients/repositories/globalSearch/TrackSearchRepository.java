@@ -1,4 +1,4 @@
-package com.apipietunes.clients.repositories.neo4j.globalSearch;
+package com.apipietunes.clients.repositories.globalSearch;
 
 import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;

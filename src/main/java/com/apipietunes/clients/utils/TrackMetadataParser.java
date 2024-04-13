@@ -3,17 +3,16 @@ package com.apipietunes.clients.utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
-import com.apipietunes.clients.models.neo4jDomain.MusicBand;
-import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.MusicAlbum;
+import com.apipietunes.clients.models.MusicBand;
+import com.apipietunes.clients.models.MusicGenre;
+import com.apipietunes.clients.models.MusicTrack;
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
