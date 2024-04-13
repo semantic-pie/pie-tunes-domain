@@ -1,6 +1,6 @@
 package com.apipietunes.clients.services.impl;
 
-import com.apipietunes.clients.models.dtos.SaveUserUuidRequest;
+import com.apipietunes.clients.models.MusicGenre;
 import com.apipietunes.clients.models.UserNeo4j;
 import com.apipietunes.clients.repositories.MusicGenreRepository;
 import com.apipietunes.clients.repositories.UserNeo4jRepository;
@@ -11,7 +11,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.Set;
+import java.util.UUID;
 
 
 @Service
@@ -24,23 +28,28 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> createUser(SaveUserUuidRequest creationRequest) {
-        var userNeo4j = new UserNeo4j(creationRequest.getUuid());
-        return userNeo4jRepository.save(userNeo4j)
-                .doOnSuccess(savedUser -> {
-                    log.info("Saved to Neo4j database User with UUID: {}", savedUser.getUuid());
-                })
-                .then();
-        /*Set<String> preferredGenres = creationRequest.getPreferredGenres();
-        return Flux.fromIterable(preferredGenres)
-                .flatMap(genre -> musicGenreRepository.persist(new MusicGenre(genre)))
-                .collectList()
-                .flatMap(persistedGenres -> {
-                    persistedGenres.forEach(userSaveToNeo4j::addPreferredGenre);
-                    return userNeo4jRepository.save(userSaveToNeo4j)
-                            .map(UserNeo4j::getUuid)
-                            .doOnSuccess(uuid -> log.info("Saved to SQL database User with UUID: {}", uuid));
-                });*/
+    public Mono<UserNeo4j> createUser(UUID uuid) {
+        return userNeo4jRepository.save(new UserNeo4j(uuid))
+                .doOnSuccess(savedUser -> log.info("Saved to Neo4j database User with UUID: {}", savedUser.getUuid()));
+    }
+
+    @Override
+    @Transactional
+    public Mono<UserNeo4j> addPreferredGenres(Set<String> preferredGenres, UUID uuid) {
+        return userNeo4jRepository.findUserNeo4jByUuid(uuid)
+                .flatMap(existingUser -> {
+                    Flux<MusicGenre> musicGenreFlux = Flux.fromIterable(preferredGenres)
+                            .flatMap(genre -> musicGenreRepository.persist(new MusicGenre(genre)));
+
+                    return musicGenreFlux.collectList()
+                            .flatMap(persistedGenres -> {
+                                persistedGenres.forEach(existingUser::addPreferredGenre);
+                                return userNeo4jRepository.save(existingUser)
+                                        .doOnSuccess(updatedUser ->
+                                                log.info("Add genres: {} to User with UUID: {}",
+                                                        persistedGenres, updatedUser.getUuid()));
+                            });
+                });
     }
 
     @Override

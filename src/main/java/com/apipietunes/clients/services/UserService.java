@@ -1,13 +1,18 @@
 package com.apipietunes.clients.services;
 
-import com.apipietunes.clients.models.dtos.SaveUserUuidRequest;
+import com.apipietunes.clients.models.UserNeo4j;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Set;
+import java.util.UUID;
 
 
 public interface UserService {
 
-    Mono<Void> createUser(SaveUserUuidRequest creationRequest);
+    Mono<UserNeo4j> createUser(UUID userUuid);
+
+    Mono<UserNeo4j> addPreferredGenres(Set<String> preferredGenres, UUID userUuid);
 
     Mono<Void> likeTrackEvent(String trackUuid, String userUuid, ServerWebExchange exchange);
 
