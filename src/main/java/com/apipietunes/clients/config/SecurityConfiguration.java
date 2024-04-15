@@ -32,8 +32,8 @@ import java.util.List;
 public class SecurityConfiguration {
 
     private final String[] WHITE_LIST_URLs = {
-            "/api/v1/pie-tunes/signup",
-            "/api/v1/pie-tunes/auth"
+            "/api/v1/authorisation/signup",
+            "/api/v1/authorisation/auth"
     };
 
     @Value("${pie-tunes-ui.server.url}")

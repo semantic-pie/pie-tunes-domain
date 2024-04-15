@@ -14,7 +14,7 @@ public interface UserService {
 
     Mono<UserNeo4j> addPreferredGenres(Set<String> preferredGenres, UUID userUuid);
 
-    Mono<Void> likeTrackEvent(String trackUuid, String userUuid, ServerWebExchange exchange);
+    Mono<Void> likeTrackEvent(String trackUuid, String userUuid);
 
-    Mono<Void> removeLikeEvent(String trackUuid, String userUuid, ServerWebExchange exchange);
+    Mono<Void> removeLikeEvent(String trackUuid, String userUuid);
 }

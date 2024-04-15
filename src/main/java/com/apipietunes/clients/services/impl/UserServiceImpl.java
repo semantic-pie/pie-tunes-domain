@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid) {
         return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (!isLikeExists) {
@@ -70,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> removeLikeEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+    public Mono<Void> removeLikeEvent(String trackUuid, String userUuid) {
         return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (isLikeExists) {

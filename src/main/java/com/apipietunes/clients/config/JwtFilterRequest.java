@@ -24,7 +24,7 @@ public class JwtFilterRequest implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
-        String jwtToken = getJwtTokenFromRequest(exchange.getRequest());
+        String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
         if (StringUtils.hasText(jwtToken) && this.jwtTokenProvider.validateToken(jwtToken)) {
             return Mono.fromCallable(() -> this.jwtTokenProvider.getAuthentication(jwtToken))
                     .subscribeOn(Schedulers.boundedElastic())
@@ -32,13 +32,5 @@ public class JwtFilterRequest implements WebFilter {
                             .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
         }
         return chain.filter(exchange);
-    }
-
-    private String getJwtTokenFromRequest(ServerHttpRequest request) {
-        String bearerToken = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.hasLength(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
     }
 }
