@@ -35,7 +35,7 @@ public class SecurityConfiguration {
             "/api/v1/auth/signup",
             "/api/v1/auth/login",
             "/swagger-ui.html",
-            "/webjars/swagger-ui/index.html"
+            "/webjars/*"
     };
 
     @Value("${pie-tunes-ui.server.url}")
