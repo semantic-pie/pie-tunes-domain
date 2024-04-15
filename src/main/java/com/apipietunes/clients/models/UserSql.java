@@ -1,7 +1,7 @@
-package com.apipietunes.clients.models.sql;
+package com.apipietunes.clients.models;
 
 
-import com.apipietunes.clients.models.sql.enums.UserRole;
+import com.apipietunes.clients.models.enums.UserRole;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 
@@ -17,7 +17,7 @@ public class UserSql {
     private UUID uuid;
 
     @NonNull
-    private String name;
+    private String username;
 
     @NonNull
     private String email;
@@ -27,6 +27,5 @@ public class UserSql {
 
     @NonNull
     private UserRole role;
-
 
 }

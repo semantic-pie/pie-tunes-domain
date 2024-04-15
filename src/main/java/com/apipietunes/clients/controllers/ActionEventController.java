@@ -2,6 +2,7 @@ package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.dtos.ActionEventDto;
 import com.apipietunes.clients.services.UserService;
+import com.apipietunes.clients.services.jwt.JwtTokenProvider;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +17,20 @@ import reactor.core.publisher.Mono;
 public class ActionEventController {
 
     private final UserService userService;
+    private JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/api/tracks/events")
     public Mono<Void> likeTrack(@RequestBody ActionEventDto event, ServerWebExchange exchange) {
 
+        String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
+        String userUuid = jwtTokenProvider.getUUID(jwtToken);
+
         switch (event.getType()) {
             case LIKE_TRACK -> {
-                return userService.likeTrackEvent(event.getTrackUuid(), event.getUserUuid(), exchange);
+                return userService.likeTrackEvent(event.getTrackUuid(), userUuid);
             }
             case REMOVE_LIKE -> {
-                return userService.removeLikeEvent(event.getTrackUuid(), event.getUserUuid(), exchange);
+                return userService.removeLikeEvent(event.getTrackUuid(), userUuid);
             }
             default -> {
                 return Mono.empty();

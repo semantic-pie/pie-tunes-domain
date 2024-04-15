@@ -1,4 +1,4 @@
-package com.apipietunes.clients.models.neo4jDomain;
+package com.apipietunes.clients.models;
 
 import lombok.*;
 import org.springframework.data.annotation.Version;

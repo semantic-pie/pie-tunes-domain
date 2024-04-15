@@ -1,9 +1,10 @@
 package com.apipietunes.clients.controllers;
 
 import com.apipietunes.clients.models.mappers.DomainEntityMapper;
-import com.apipietunes.clients.models.neo4jDomain.MusicTrack;
+import com.apipietunes.clients.models.MusicTrack;
 import com.apipietunes.clients.models.dtos.domain.MusicTrackDto;
-import com.apipietunes.clients.repositories.neo4j.MusicTrackRepository;
+import com.apipietunes.clients.repositories.MusicTrackRepository;
+import com.apipietunes.clients.services.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,6 +31,7 @@ public class TrackController {
 
     private final MusicTrackRepository musicTrackRepository;
     private final DomainEntityMapper entityMapper;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Deprecated
     @GetMapping()
@@ -59,7 +62,10 @@ public class TrackController {
     findTracksByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
                      @RequestParam(defaultValue = "desc") String order,
-                     @RequestParam String userUuid) {
+                     ServerWebExchange exchange) {
+
+        String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
+        String userUuid = jwtTokenProvider.getUUID(jwtToken);
 
         Sort sort = Sort.by(Sort.Direction.fromString(order.toLowerCase()), "r.createdAt");
         Pageable pageable = PageRequest.of(page, limit, sort);
@@ -89,7 +95,10 @@ public class TrackController {
     findTracksByTitle(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
                       @RequestParam(value = "q") String query,
-                      @RequestParam String userUuid) {
+                      ServerWebExchange exchange) {
+
+        String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
+        String userUuid = jwtTokenProvider.getUUID(jwtToken);
 
         Pageable pageable = PageRequest.of(page, limit);
 

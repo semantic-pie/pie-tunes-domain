@@ -1,4 +1,4 @@
-package com.apipietunes.clients.repositories.neo4j;
+package com.apipietunes.clients.repositories;
 
 import java.util.UUID;
 
@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicBand;
+import com.apipietunes.clients.models.MusicBand;
 
 import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Flux;

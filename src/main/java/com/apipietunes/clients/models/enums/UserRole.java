@@ -1,4 +1,4 @@
-package com.apipietunes.clients.models.sql.enums;
+package com.apipietunes.clients.models.enums;
 
 public enum UserRole {
     ROLE_ADMIN,

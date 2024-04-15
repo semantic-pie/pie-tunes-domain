@@ -1,7 +1,7 @@
-package com.apipietunes.clients.models.neo4jDomain;
+package com.apipietunes.clients.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -11,16 +11,17 @@ import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
+
 import org.springframework.lang.Nullable;
 
 import java.util.Set;
 import java.util.UUID;
 
-@Node("Band")
+@Node("Album")
 @RequiredArgsConstructor
 @Getter
 @Setter
-public class MusicBand {
+public class MusicAlbum {
 
     @Id
     @GeneratedValue
@@ -36,7 +37,13 @@ public class MusicBand {
     private String description;
 
     @Nullable
-    @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.OUTGOING)
-    private Set<MusicAlbum> albums;
+    private int yearOfRecord;
 
+    @Nullable
+    @Relationship(type = "CONTAINS", direction = Relationship.Direction.OUTGOING)
+    private Set<MusicTrack> tracks;
+
+    @Relationship(type = "HAS_ALBUM", direction = Relationship.Direction.INCOMING)
+    @JsonProperty("band")
+    private MusicBand musicBand;
 }

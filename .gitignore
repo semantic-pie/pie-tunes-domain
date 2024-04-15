@@ -44,4 +44,5 @@ out/
 src/main/resources/neo4jdb/export/**
 
 ### H2 ###
-/usersSql.mv.db
+/users_db.mv.db
+/users_db.trace.db

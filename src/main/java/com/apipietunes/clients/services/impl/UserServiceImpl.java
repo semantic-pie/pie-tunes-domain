@@ -1,15 +1,11 @@
 package com.apipietunes.clients.services.impl;
 
-import com.apipietunes.clients.models.dtos.UserSignUpRequest;
-import com.apipietunes.clients.models.neo4jDomain.MusicGenre;
-import com.apipietunes.clients.models.neo4jDomain.UserNeo4j;
-import com.apipietunes.clients.models.sql.UserSql;
-import com.apipietunes.clients.repositories.h2.UserH2Repository;
-import com.apipietunes.clients.repositories.neo4j.MusicGenreRepository;
-import com.apipietunes.clients.repositories.neo4j.UserNeo4jRepository;
+import com.apipietunes.clients.models.MusicGenre;
+import com.apipietunes.clients.models.UserNeo4j;
+import com.apipietunes.clients.repositories.MusicGenreRepository;
+import com.apipietunes.clients.repositories.UserNeo4jRepository;
 import com.apipietunes.clients.services.UserService;
 import com.apipietunes.clients.services.exceptions.ActionEventException;
-import com.apipietunes.clients.services.exceptions.UserAlreadyExistsException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +15,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Set;
+import java.util.UUID;
+
 
 @Service
 @AllArgsConstructor
@@ -26,49 +24,37 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
 
     private final UserNeo4jRepository userNeo4jRepository;
-    private final UserH2Repository userH2Repository;
     private final MusicGenreRepository musicGenreRepository;
 
     @Override
     @Transactional
-    public Mono<UserNeo4j> createUser(Mono<UserSignUpRequest> creationRequest) {
-        return creationRequest.flatMap(request -> userH2Repository.findUserSqlByEmail(request.getEmail())
+    public Mono<UserNeo4j> saveUserNeo4j(UUID uuid) {
+        return userNeo4jRepository.save(new UserNeo4j(uuid))
+                .doOnSuccess(savedUser -> log.info("Saved to Neo4j database User with UUID: {}", savedUser.getUuid()));
+    }
+
+    @Override
+    @Transactional
+    public Mono<UserNeo4j> addPreferredGenres(Set<String> preferredGenres, UUID uuid) {
+        return userNeo4jRepository.findUserNeo4jByUuid(uuid)
                 .flatMap(existingUser -> {
-                    String errorMessage = String.format("User with email '%s' already exists.", existingUser.getEmail());
-                    log.info(errorMessage);
-                    return Mono.error(new UserAlreadyExistsException(errorMessage));
-                })
-                .switchIfEmpty(Mono.defer(() -> saveUserToSql(request)))
-                .cast(UserSql.class)
-                .flatMap(savedUser -> saveUserToNeo4j(request, savedUser)));
-    }
+                    Flux<MusicGenre> musicGenreFlux = Flux.fromIterable(preferredGenres)
+                            .flatMap(genre -> musicGenreRepository.persist(new MusicGenre(genre)));
 
-    private Mono<UserSql> saveUserToSql(UserSignUpRequest request) {
-        var userSaveToSql = new UserSql(
-                request.getName(),
-                request.getEmail(),
-                request.getPassword(),
-                request.getRole());
-        return userH2Repository.save(userSaveToSql)
-                .doOnNext(savedUser -> log.info("User saved to SQL database with UUID: {}", savedUser.getUuid()));
-    }
-
-    private Mono<UserNeo4j> saveUserToNeo4j(UserSignUpRequest request, UserSql savedSqlUser) {
-        var userSaveToNeo4j = new UserNeo4j(savedSqlUser.getUuid());
-        Set<String> favoriteGenres = request.getFavoriteGenres();
-        return Flux.fromIterable(favoriteGenres)
-                .flatMap(genre -> musicGenreRepository.persist(new MusicGenre(genre)))
-                .collectList()
-                .flatMap(persistedGenres -> {
-                    persistedGenres.forEach(userSaveToNeo4j::addPreferredGenre);
-                    return userNeo4jRepository.save(userSaveToNeo4j)
-                            .doOnNext(savedUserNeo4j -> log.info("User saved to Neo4j database with UUID: {}", savedUserNeo4j.getUuid()));
+                    return musicGenreFlux.collectList()
+                            .flatMap(persistedGenres -> {
+                                persistedGenres.forEach(existingUser::addPreferredGenre);
+                                return userNeo4jRepository.save(existingUser)
+                                        .doOnSuccess(updatedUser ->
+                                                log.info("Add genres: {} to User with UUID: {}",
+                                                        persistedGenres, updatedUser.getUuid()));
+                            });
                 });
     }
 
     @Override
     @Transactional
-    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid) {
         return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (!isLikeExists) {
@@ -84,7 +70,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> removeLikeEvent(String trackUuid, String userUuid, ServerWebExchange exchange) {
+    public Mono<Void> removeLikeEvent(String trackUuid, String userUuid) {
         return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (isLikeExists) {

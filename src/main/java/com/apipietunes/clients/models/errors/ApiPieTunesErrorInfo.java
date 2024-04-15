@@ -8,8 +8,8 @@ import lombok.Data;
 
 @Data
 public class ApiPieTunesErrorInfo {
-    private LocalDateTime timestamp;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    private LocalDateTime timestamp;
     private String url;
     private int status;
     private String message;

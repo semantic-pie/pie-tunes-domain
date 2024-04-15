@@ -1,11 +1,11 @@
-package com.apipietunes.clients.repositories.neo4j;
+package com.apipietunes.clients.repositories;
 
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 
-import com.apipietunes.clients.models.neo4jDomain.MusicAlbum;
+import com.apipietunes.clients.models.MusicAlbum;
 
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;

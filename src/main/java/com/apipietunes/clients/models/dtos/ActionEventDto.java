@@ -12,9 +12,6 @@ public class ActionEventDto {
 
     private ActionType type;
 
-    @JsonProperty("track_uuid")
     private String trackUuid;
 
-    @JsonProperty("user_uuid")
-    private String userUuid;
 }

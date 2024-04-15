@@ -1,6 +1,6 @@
-package com.apipietunes.clients.repositories.h2;
+package com.apipietunes.clients.repositories;
 
-import com.apipietunes.clients.models.sql.UserSql;
+import com.apipietunes.clients.models.UserSql;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
