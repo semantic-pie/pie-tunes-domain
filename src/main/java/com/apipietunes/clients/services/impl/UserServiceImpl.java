@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<UserNeo4j> createUser(UUID uuid) {
+    public Mono<UserNeo4j> saveUserNeo4j(UUID uuid) {
         return userNeo4jRepository.save(new UserNeo4j(uuid))
                 .doOnSuccess(savedUser -> log.info("Saved to Neo4j database User with UUID: {}", savedUser.getUuid()));
     }

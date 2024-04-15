@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public interface UserService {
 
-    Mono<UserNeo4j> createUser(UUID userUuid);
+    Mono<UserNeo4j> saveUserNeo4j(UUID userUuid);
 
     Mono<UserNeo4j> addPreferredGenres(Set<String> preferredGenres, UUID userUuid);
 

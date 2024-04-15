@@ -1,4 +1,4 @@
-package com.apipietunes.clients.models.messages;
+package com.apipietunes.clients.models.errors;
 
 import java.time.LocalDateTime;
 
@@ -7,18 +7,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 @Data
-public class ApiPieTunesMessageInfo {
-    private LocalDateTime timestamp;
+public class ApiPieTunesErrorInfo {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    private LocalDateTime timestamp;
     private String url;
     private int status;
     private String message;
 
-    private ApiPieTunesMessageInfo() {
+    private ApiPieTunesErrorInfo() {
         timestamp = LocalDateTime.now();
     }
 
-    public ApiPieTunesMessageInfo(int status, String url, String message) {
+    public ApiPieTunesErrorInfo(int status, String url, String message) {
         this();
         this.status = status;
         this.url = url;
