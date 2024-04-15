@@ -33,7 +33,9 @@ public class SecurityConfiguration {
 
     private final String[] WHITE_LIST_URLs = {
             "/api/v1/auth/signup",
-            "/api/v1/auth/login"
+            "/api/v1/auth/login",
+            "/swagger-ui.html",
+            "/webjars/swagger-ui/index.html"
     };
 
     @Value("${pie-tunes-ui.server.url}")
