@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @Slf4j
-@RequestMapping(path = "/api/v1/authorisation")
+@RequestMapping(path = "/api/v1/auth")
 @AllArgsConstructor
 public class AuthController {
 

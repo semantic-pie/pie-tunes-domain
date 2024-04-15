@@ -32,12 +32,12 @@ import java.util.List;
 public class SecurityConfiguration {
 
     private final String[] WHITE_LIST_URLs = {
-            "/api/v1/authorisation/signup",
-            "/api/v1/authorisation/auth"
+            "/api/v1/auth/signup",
+            "/api/v1/auth/login"
     };
 
     @Value("${pie-tunes-ui.server.url}")
-    private String FRONTEND_URL;
+    private List<String> FRONTEND_URLs;
 
 
     @Bean
@@ -84,7 +84,7 @@ public class SecurityConfiguration {
 
     private CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(FRONTEND_URL));
+        configuration.setAllowedOrigins(FRONTEND_URLs);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Access-Control-Allow-Origin", "Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
