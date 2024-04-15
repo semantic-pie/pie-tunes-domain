@@ -1,8 +1,13 @@
 package com.apipietunes.clients.controllers;
 
+import com.apipietunes.clients.models.JwtResponse;
+import com.apipietunes.clients.models.dtos.UserDto;
 import com.apipietunes.clients.services.UserService;
 import com.apipietunes.clients.services.jwt.JwtTokenProvider;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +37,23 @@ public class UserController {
                     return ResponseEntity.status(HttpStatus.CREATED).body(responseMessage);
                 });
 
+
+    }
+
+    @GetMapping
+    public Mono<ResponseEntity<UserDto>> getUser(ServerWebExchange exchange) {
+        JwtResponse jwtToken = new JwtResponse(jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest()));
+        Jws<Claims> tokenPayload = jwtTokenProvider.getAllClaimsFromToken(jwtToken.getAccessToken());
+
+        String username = tokenPayload.getBody().get("username", String.class);
+        String email = tokenPayload.getBody().get("email", String.class);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + jwtToken.getAccessToken());
+
+        return Mono.just(ResponseEntity.ok()
+                .headers(httpHeaders)
+                .body(new UserDto(email, username)));
 
     }
 

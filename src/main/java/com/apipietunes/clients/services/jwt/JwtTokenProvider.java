@@ -40,7 +40,7 @@ public class JwtTokenProvider {
         return getAllClaimsFromToken(token).getBody().get("uuid", String.class);
     }
 
-    private Jws<Claims> getAllClaimsFromToken(String token) {
+    public Jws<Claims> getAllClaimsFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -81,6 +81,7 @@ public class JwtTokenProvider {
         // payload
         claims.put("uuid", user.getUuid());
         claims.put("email", user.getEmail());
+        claims.put("username", user.getUsername());
         claims.put("role", user.getRole());
 
         var issuedDate = new Date();
