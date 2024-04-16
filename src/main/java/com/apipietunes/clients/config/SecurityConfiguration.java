@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.HttpStatusServerEntryPoint;
+import org.springframework.security.web.server.authentication.RedirectServerAuthenticationEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
@@ -84,8 +85,8 @@ public class SecurityConfiguration {
                         .anyExchange().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
-//                .exceptionHandling(exceptionHandling -> exceptionHandling
-//                                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint("/form-login"))
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint("http://192.168.192.69:3000/auth/signup")))
                 .addFilterBefore(jwtAuthenticationFilter(), SecurityWebFiltersOrder.HTTP_BASIC)
                 .httpBasic(Customizer.withDefaults())
                 .build();
