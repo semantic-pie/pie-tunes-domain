@@ -26,11 +26,11 @@ public class ActionEventController {
         String userUuid = jwtTokenProvider.getUUID(jwtToken);
 
         switch (event.getType()) {
-            case LIKE_TRACK -> {
-                return userService.likeTrackEvent(event.getTrackUuid(), userUuid);
+            case LIKE_ENTITY -> {
+                return userService.likeEntityEvent(event.getEntityUuid(), userUuid);
             }
             case REMOVE_LIKE -> {
-                return userService.removeLikeEvent(event.getTrackUuid(), userUuid);
+                return userService.removeLikeEvent(event.getEntityUuid(), userUuid);
             }
             default -> {
                 return Mono.empty();

@@ -10,7 +10,6 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -54,14 +53,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Mono<Void> likeTrackEvent(String trackUuid, String userUuid) {
-        return userNeo4jRepository.isLikeRelationExists(trackUuid, userUuid)
+    public Mono<Void> likeEntityEvent(String entityUuid, String userUuid) {
+        return userNeo4jRepository.isLikeRelationExists(entityUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (!isLikeExists) {
-                        return userNeo4jRepository.likeExistingTrack(trackUuid, userUuid)
+                        return userNeo4jRepository.likeExistingTrack(entityUuid, userUuid)
                                 .then();
                     } else {
-                        String errorMessage = String.format("User already 'LIKES' track '%s'", trackUuid);
+                        String errorMessage = String.format("User already 'LIKES' entity '%s'", entityUuid);
                         return Mono.error(new ActionEventException(errorMessage));
                     }
                 });
@@ -77,7 +76,7 @@ public class UserServiceImpl implements UserService {
                         return userNeo4jRepository.deleteLikeRelation(trackUuid, userUuid)
                                 .then();
                     } else {
-                        String errorMessage = String.format("User doesn't 'LIKE' track '%s'", trackUuid);
+                        String errorMessage = String.format("User doesn't 'LIKE' entity '%s'", trackUuid);
                         return Mono.error(new ActionEventException(errorMessage));
                     }
                 });
