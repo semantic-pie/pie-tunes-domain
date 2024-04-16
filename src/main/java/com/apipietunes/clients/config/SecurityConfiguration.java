@@ -44,10 +44,15 @@ public class SecurityConfiguration {
             "/v3/api-docs/**",
             "/configuration/ui",
             "/configuration/security",
+            "/api/track-loader/upload",
+            "/api/track-loader/upload-one"
     };
 
     @Value("${pie-tunes-ui.server.url}")
     private List<String> FRONTEND_URLs;
+
+    @Value("${security.auth-redirect.url}")
+    private String AUTH_REDIRECT;
 
 
     @Bean
@@ -86,7 +91,7 @@ public class SecurityConfiguration {
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint("http://192.168.192.69:3000/auth/signup")))
+                                .authenticationEntryPoint(new RedirectServerAuthenticationEntryPoint(AUTH_REDIRECT)))
                 .addFilterBefore(jwtAuthenticationFilter(), SecurityWebFiltersOrder.HTTP_BASIC)
                 .httpBasic(Customizer.withDefaults())
                 .build();
