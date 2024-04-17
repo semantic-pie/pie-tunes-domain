@@ -9,14 +9,10 @@ services:
       - "8080:8080"
     restart: always
     volumes:
-      -  pie-tunes-users-database:/opt/data
+      -  ${DATABASE_DIR:-./data}:/opt/data
     environment:
       - NEO4J_URL=bolt://pie-tunes-neo4j-prod:7687
       - MINIO_URL=http://pie-tunes-minio-prod:9000
-
-volumes:
-  pie-tunes-users-database:
-    name: pie-tunes-users-database
 
 networks:
   pie-tunes-network-prod:
