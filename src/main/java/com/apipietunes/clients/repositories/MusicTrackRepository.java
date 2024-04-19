@@ -24,49 +24,15 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
     Mono<Long> findTotalLikedTracks(String userUuid);
 
     @Query("""
-            MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicTrack:Track)<-[:HAS_TRACK]-(band:Band)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [(musicTrack)<-[:CONTAINS]-(musicTrack_musicAlbum:Album) | musicTrack_musicAlbum{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(musicTrack_musicAlbum),
-                 __elementId__: id(musicTrack_musicAlbum),
-                 Album_HAS_ALBUM_Band: [band{
-                             .description,
-                             .name,
-                             .uuid,
-                             .version,
-                             __nodeLabels__: labels(band),
-                             __elementId__: id(band)
-                 }]
-             }],
-             Track_IN_GENRE_Genre: [(musicTrack)-[:IN_GENRE]->(musicTrack_genres:Genre) | musicTrack_genres{
-                 .name,
-                 .version,
-                 __nodeLabels__: labels(musicTrack_genres),
-                 __elementId__: id(musicTrack_genres)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-            }
-            :#{orderBy(#pageable)}
+            MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicTrack:Track)<-[a:HAS_TRACK]-(band:Band)
+            MATCH (musicTrack)<-[contains:CONTAINS]-(album:Album)
+            WITH musicTrack,
+            collect(a) as trackInfo,
+            collect(contains) as containsOfAlbum,
+            collect(band) as bands,
+            collect(album) as albums, r
+            ORDER BY r.createdAt DESC
+            RETURN musicTrack, trackInfo, bands, albums, containsOfAlbum
             SKIP :#{#pageable.getPageNumber()}*:#{#pageable.getPageSize()}
             LIMIT :#{#pageable.getPageSize()}
             """)

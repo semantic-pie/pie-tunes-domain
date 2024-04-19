@@ -15,19 +15,15 @@ public interface AlbumSearchRepository extends ReactiveNeo4jRepository<MusicAlbu
             MATCH (musicAlbumDto:Album)
             WHERE toLower(musicAlbumDto.name) CONTAINS toLower($searchQuery)
             OPTIONAL MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicAlbumDto:Album)
-            WITH musicAlbumDto, COUNT(r) AS isLiked
+            MATCH (musicAlbumDto)<-[has_album:HAS_ALBUM]-(musicAlbumDto_musicBand:Band)
+            WITH musicAlbumDto, collect(has_album) as has_album, collect(musicAlbumDto_musicBand) as musicAlbumDto_musicBand,  COUNT(r) AS isLiked
             RETURN musicAlbumDto{
                 .uuid,
                 .name,
                 .description,
                 .yearOfRecord,
-                isLiked: CASE WHEN isLiked > 0 THEN true ELSE false END,
-                MusicAlbumDto_MUSIC_BAND_InnerBandDto: [(musicAlbumDto)<-[:HAS_ALBUM]-(musicAlbumDto_musicBand:Band) | musicAlbumDto_musicBand {
-                    .uuid,
-                    .name,
-                    .description
-                }]
-            }
+                isLiked: CASE WHEN isLiked > 0 THEN true ELSE false END
+            }, has_album, musicAlbumDto_musicBand
             LIMIT 4
             """)
     Flux<MusicAlbumDto> findAllByName(String userUuid, String searchQuery);
