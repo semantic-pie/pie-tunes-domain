@@ -83,7 +83,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
                         return Mono.error(new NodeAlreadyExists(errorMessage));
                     })
                     .switchIfEmpty(
-                            saveNeo4j(musicTrack)
+                            self.saveNeo4j(musicTrack)
                                     .flatMap(persistedTrack -> saveMinio(persistedTrack, filePart, result.getCover(),
                                             result.getCoverMimeType())))
                     .cast(MusicTrack.class);
@@ -92,6 +92,7 @@ public class TrackLoaderServiceImpl implements TrackLoaderService {
         }
     }
 
+    @Transactional
     protected Mono<MusicTrack> saveNeo4j(MusicTrack musicTrack) {
         log.info("Save track: {} - {}", musicTrack.getTitle(), musicTrack.getMusicBand().getName());
 

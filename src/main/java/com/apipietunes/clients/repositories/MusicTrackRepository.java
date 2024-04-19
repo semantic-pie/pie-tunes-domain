@@ -47,49 +47,11 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
     Mono<Long> findTotalLikedTracksByTitle(String searchQuery, String userUuid);
 
     @Query("""
-            MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicTrack:Track)<-[:HAS_TRACK]-(band:Band)
+            MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(musicTrack:Track)<-[has_track:HAS_TRACK]-(band:Band)
             WHERE toLower(musicTrack.title) CONTAINS toLower($searchQuery)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [(musicTrack)<-[:CONTAINS]-(musicTrack_musicAlbum:Album) | musicTrack_musicAlbum{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(musicTrack_musicAlbum),
-                 __elementId__: id(musicTrack_musicAlbum),
-                 Album_HAS_ALBUM_Band: [band{
-                             .description,
-                             .name,
-                             .uuid,
-                             .version,
-                             __nodeLabels__: labels(band),
-                             __elementId__: id(band)
-                 }]
-             }],
-             Track_IN_GENRE_Genre: [(musicTrack)-[:IN_GENRE]->(musicTrack_genres:Genre) | musicTrack_genres{
-                 .name,
-                 .version,
-                 __nodeLabels__: labels(musicTrack_genres),
-                 __elementId__: id(musicTrack_genres)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-            }
+            MATCH (musicTrack)-[in_genre:IN_GENRE]->(genre:Genre)
+            MATCH (musicTrack)<-[contains:CONTAINS]-(album:Album)
+            RETURN musicTrack, collect(has_track), collect(band), collect(in_genre), collect(genre), collect(contains), collect(album)
             SKIP :#{#pageable.getPageNumber()}*:#{#pageable.getPageSize()}
             LIMIT :#{#pageable.getPageSize()}
             """)
@@ -103,105 +65,22 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
     Mono<Long> findTotalTracksInAlbumByUuid(String albumUuid);
 
     @Query("""
-            MATCH (album:Album {uuid: $albumUuid})-[r:CONTAINS]->(musicTrack:Track)<-[:HAS_TRACK]-(band:Band)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [album{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(album),
-                 __elementId__: id(album)
-             }],
-             Track_IN_GENRE_Genre: [(musicTrack)-[:IN_GENRE]->(musicTrack_genres:Genre) | musicTrack_genres{
-                 .name,
-                 .version,
-                 __nodeLabels__: labels(musicTrack_genres),
-                 __elementId__: id(musicTrack_genres)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-            }
+            MATCH (album:Album {uuid: $albumUuid})-[r:CONTAINS]->(musicTrack:Track)<-[has_track:HAS_TRACK]-(band:Band)
+            MATCH (musicTrack)-[in_genre:IN_GENRE]->(genre:Genre)
+            RETURN musicTrack, collect(r), collect(album), collect(has_track), collect(band), collect(in_genre), collect(genre)
             """)
     Flux<MusicTrack> findTracksByAlbumUuid(String albumUuid);
 
     @Query("""
-            MATCH (album:Album)-[:CONTAINS]->(musicTrack:Track {uuid: $trackUuid})<-[:HAS_TRACK]-(band:Band)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [album{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(album),
-                 __elementId__: id(album)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-             }
+            MATCH (album:Album)-[contains:CONTAINS]->(musicTrack:Track {uuid: $trackUuid})<-[has_track:HAS_TRACK]-(band:Band)
+            RETURN musicTrack, collect(contains), collect(album), collect(has_track), collect(band)
             """)
     Mono<MusicTrack> findMusicTrackByUuid(String trackUuid);
 
 
     @Query("""
-            MATCH (album:Album)-[:CONTAINS]->(musicTrack:Track)<-[:HAS_TRACK]-(band:Band)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [album{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(album),
-                 __elementId__: id(album)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-             }
+            MATCH (album:Album)-[contains:CONTAINS]->(musicTrack:Track)<-[has_track:HAS_TRACK]-(band:Band)
+            RETURN musicTrack, collect(contains), collect(album), collect(has_track), collect(band)
             SKIP :#{#pageable.getPageNumber()}*:#{#pageable.getPageSize()}
             LIMIT :#{#pageable.getPageSize()}
             """)
