@@ -57,7 +57,7 @@ public class UserController {
 
     }
 
-    @PostMapping(value = "/addGenres", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/add-genres", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ResponseEntity<String>> addPreferredGenresToUser(@RequestBody Set<String> preferredGenres,
                                                                  ServerWebExchange exchange) {
