@@ -11,10 +11,14 @@ services:
     volumes:
       -  ${DATABASE_DIR:-./data}:/opt/data
     environment:
-      - NEO4J_URL=bolt://pie-tunes-neo4j-prod:7687
-      - MINIO_URL=http://pie-tunes-minio-prod:9000
+      - NEO4J_URL=${NEO4J_URL}
+      - MINIO_URL=${MINIO_URL}
       - JWT_TOKEN_SECRET_KEY=${JWT_TOKEN_SECRET_KEY}
       - UI_SERVER_URL=${UI_SERVER_URL}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKETS_COVERS=${MINIO_BUCKETS_COVERS}
+      - MINIO_BUCKETS_TRACKS=${MINIO_BUCKETS_TRACKS}
 
 networks:
   pie-tunes-network-prod:
