@@ -1,16 +1,16 @@
 package com.apipietunes.clients.config;
 
-import com.apipietunes.clients.services.jwt.JwtTokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+
+import com.apipietunes.clients.service.jwt.JwtTokenProvider;
+
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 

@@ -18,6 +18,7 @@ repositories {
 
 ext {
 	set('jjwtVersion', "0.11.5")
+	set('mapstructVersion', "1.5.5.Final")
 }
 
 
@@ -28,7 +29,7 @@ dependencies {
 	implementation 'com.mpatric:mp3agic:0.9.1'
 	implementation 'org:jaudiotagger:2.0.3'
 	implementation 'io.minio:minio:8.5.8'
-	implementation 'org.mapstruct:mapstruct:1.4.2.Final'
+	implementation "org.mapstruct:mapstruct:${mapstructVersion}"
 
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
@@ -45,7 +46,7 @@ dependencies {
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.4.2.Final'
+	annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
 }
 
 
