@@ -50,7 +50,7 @@ public class BandController {
     findTrackByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok()
                 .body(musicBandRepository.findMusicBandByUuid(uuid)
-                        .map(entityMapper::outerBand));
+                        .map(entityMapper::musicBandToMusicBandDto));
     }
 
     @GetMapping("/find-by-date")

@@ -22,7 +22,7 @@ public interface UserNeo4jRepository extends ReactiveNeo4jRepository<UserNeo4j, 
             SET r.createdAt = timestamp()
             RETURN u
             """)
-    Mono<Void> likeExistingTrack(String entityUuid, String userUuid);
+    Mono<Void> likeExistingEntity(String entityUuid, String userUuid);
 
     @Query("""
             MATCH (u:User {uuid: $userUuid})

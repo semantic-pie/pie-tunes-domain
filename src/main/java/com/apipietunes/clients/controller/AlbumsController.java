@@ -49,7 +49,7 @@ public class AlbumsController {
     findTrackByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok()
                 .body(musicAlbumRepository.findMusicAlbumByUuid(uuid)
-                        .map(entityMapper::outerAlbum));
+                        .map(entityMapper::musicAlbumToMusicAlbumDto));
     }
 
     @GetMapping("/find-by-date")
@@ -118,4 +118,13 @@ public class AlbumsController {
 
 
     }
+
+    @GetMapping("kek")
+    public Flux<MusicAlbum> test(){
+        log.info("kek");
+        Flux<MusicAlbum> lol =  musicAlbumRepository.findAllByNameContainingIgnoreCase("OST");
+        return lol;
+
+    }
+
 }

@@ -40,7 +40,7 @@ public class TrackLoaderController {
         return filePartFlux
                 .flatMap(trackLoaderService::save)
                 .map(savedTrack -> {
-                    MusicTrackDto trackDto = domainEntityMapper.outerTrack(savedTrack);
+                    MusicTrackDto trackDto = domainEntityMapper.musicTrackToMusicTrackDto(savedTrack);
                     return new TrackLoaderResponse(trackDto);
                 });
     }

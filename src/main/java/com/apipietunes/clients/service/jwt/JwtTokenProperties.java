@@ -13,6 +13,6 @@ public class JwtTokenProperties {
     @Value("${security.jwt.token.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.token.lifetime}")
+    @Value("${security.jwt.access-token.lifetime}")
     private Duration jwtLifeTime;
 }

@@ -53,26 +53,14 @@ public interface DomainEntityMapper {
     @Mapping(target = "musicBand", source = "musicBand", qualifiedByName = "innerBand")
     MusicAlbumDto outerAlbumWithoutTracks(MusicAlbum source);
 
-    @Mapping(target = "uuid", source = "uuid")
-    @Mapping(target = "title", source = "title")
-    @Mapping(target = "releaseYear", source = "releaseYear")
-    @Mapping(target = "bitrate", source = "bitrate")
-    @Mapping(target = "lengthInMilliseconds", source = "lengthInMilliseconds")
     @Mapping(target = "musicAlbum", source = "musicAlbum", qualifiedByName = "innerAlbum")
     @Mapping(target = "musicBand", source = "musicBand", qualifiedByName = "innerBand")
-    MusicTrackDto outerTrack(MusicTrack source);
+    MusicTrackDto musicTrackToMusicTrackDto(MusicTrack source);
 
-    @Mapping(target = "uuid", source = "uuid")
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "description", source = "description")
     @Mapping(target = "albums", source = "albums", qualifiedByName = "innerAlbum")
-    MusicBandDto outerBand(MusicBand source);
+    MusicBandDto musicBandToMusicBandDto(MusicBand source);
 
-    @Mapping(target = "uuid", source = "uuid")
-    @Mapping(target = "name", source = "name")
-    @Mapping(target = "description", source = "description")
-    @Mapping(target = "yearOfRecord", source = "yearOfRecord")
     @Mapping(target = "tracks", source = "tracks", qualifiedByName = "innerTrack")
     @Mapping(target = "musicBand", source = "musicBand", qualifiedByName = "innerBand")
-    MusicAlbumDto outerAlbum(MusicAlbum source);
+    MusicAlbumDto musicAlbumToMusicAlbumDto(MusicAlbum source);
 }

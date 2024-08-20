@@ -241,4 +241,6 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
             """)
     Flux<MusicTrack> findAllTracks(Pageable pageable);
 
+    Flux<MusicTrack> findAllByTitleContainingIgnoreCase(String searchQuery);
+
 }

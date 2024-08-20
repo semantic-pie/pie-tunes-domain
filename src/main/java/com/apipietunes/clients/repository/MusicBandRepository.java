@@ -104,4 +104,6 @@ public interface MusicBandRepository extends ReactiveNeo4jRepository<MusicBand, 
              }
             """)
     Mono<MusicBand> findMusicBandByUuid(String bandUuid);
+
+    Flux<MusicBand> findAllByNameContainingIgnoreCase(String searchQuery);
 }

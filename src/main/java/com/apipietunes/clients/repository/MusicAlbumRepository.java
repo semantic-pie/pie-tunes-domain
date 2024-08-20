@@ -148,4 +148,7 @@ public interface MusicAlbumRepository extends ReactiveNeo4jRepository<MusicAlbum
              }
             """)
     Mono<MusicAlbum> findMusicAlbumByUuid(String albumUuid);
+
+
+    Flux<MusicAlbum> findAllByNameContainingIgnoreCase(String searchQuery);
 }

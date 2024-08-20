@@ -41,7 +41,7 @@ public class TrackController {
 
         Pageable pageable = PageRequest.of(page, limit);
         return musicTrackRepository.findAllTracks(pageable)
-                .map(entityMapper::outerTrack);
+                .map(entityMapper::musicTrackToMusicTrackDto);
     }
 
     @GetMapping("/{uuid}")
@@ -50,7 +50,7 @@ public class TrackController {
     findTrackByUuid(@PathVariable String uuid) {
         return ResponseEntity.ok()
                 .body(musicTrackRepository.findMusicTrackByUuid(uuid)
-                        .map(entityMapper::outerTrack));
+                        .map(entityMapper::musicTrackToMusicTrackDto));
     }
 
     @GetMapping("/find-by-date")
@@ -80,7 +80,7 @@ public class TrackController {
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedTracks.block()))
                 .body(allLikedTracks.map(foundTrack -> {
-                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
                     trackDto.setIsLiked(true);
                     return trackDto;
                 }));
@@ -112,7 +112,7 @@ public class TrackController {
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalLikedTracksByTitle.block()))
                 .body(allLikedTracksByTitle.map(foundTrack -> {
-                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
                     trackDto.setIsLiked(true);
                     return trackDto;
                 }));
@@ -133,7 +133,7 @@ public class TrackController {
         return ResponseEntity.ok()
                 .header("X-Total-Count", String.valueOf(totalTracksInAlbum.block()))
                 .body(allTracksInAlbum.map(foundTrack -> {
-                    MusicTrackDto trackDto = entityMapper.outerTrack(foundTrack);
+                    MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
                     trackDto.setIsLiked(true);
                     return trackDto;
                 }));
