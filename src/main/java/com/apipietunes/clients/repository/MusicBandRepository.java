@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apipietunes.clients.model.entity.MusicBand;
@@ -17,13 +16,6 @@ import reactor.core.publisher.Mono;
 public interface MusicBandRepository extends ReactiveNeo4jRepository<MusicBand, UUID> {
 
     Mono<MusicBand> findMusicBandByName(String name);
-
-    @Query("""
-           MERGE (b:Band {name: :#{#musicBand.name}})
-           ON CREATE SET b.uuid = toString(randomUUID()), b.version = 0
-           RETURN b
-           """)
-    Mono<MusicBand> persist(@Param("musicBand") MusicBand musicBand);
 
     @Query("""
             MATCH (u:User {uuid: $userUuid})-[r:LIKES]->(b:Band)
@@ -82,28 +74,7 @@ public interface MusicBandRepository extends ReactiveNeo4jRepository<MusicBand, 
             """)
     Flux<MusicBand> findAllBands(Pageable pageable);
 
-    @Query("""
-            MATCH (musicBand:Band {uuid: $bandUuid})
-            RETURN musicBand{
-             .yearOfRecord,
-             .name,
-             .uuid,
-             .description,
-             .version,
-             __nodeLabels__: labels(musicBand),
-             __elementId__: id(musicBand),
-             Band_HAS_ALBUM_Album: [(musicBand)-[:HAS_ALBUM]->(musicBand_albums:Album) | musicBand_albums{
-                .yearOfRecord,
-                .name,
-                .uuid,
-                .description,
-                .version,
-                __nodeLabels__: labels(musicBand_albums),
-                __elementId__: id(musicBand_albums)
-             }]
-             }
-            """)
-    Mono<MusicBand> findMusicBandByUuid(String bandUuid);
+    Mono<MusicBand> findMusicBandByUuid(UUID uuid);
 
     Flux<MusicBand> findAllByNameContainingIgnoreCase(String searchQuery);
 }

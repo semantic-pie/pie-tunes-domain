@@ -4,6 +4,7 @@ import com.apipietunes.clients.mapper.DomainEntityMapper;
 import com.apipietunes.clients.model.dto.domain.MusicTrackDto;
 import com.apipietunes.clients.model.entity.MusicTrack;
 import com.apipietunes.clients.repository.MusicTrackRepository;
+import com.apipietunes.clients.repository.UserNeo4jRepository;
 import com.apipietunes.clients.service.jwt.JwtTokenProvider;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 
 @Slf4j
 @RestController
@@ -31,8 +34,11 @@ import reactor.core.publisher.Mono;
 public class TrackController {
 
     private final MusicTrackRepository musicTrackRepository;
+    private final UserNeo4jRepository userNeo4jRepository;
     private final DomainEntityMapper entityMapper;
     private final JwtTokenProvider jwtTokenProvider;
+    private final static String X_TOTAL_COUNT_HEADER = "X-Total-Count";
+    private final static String SORT_BY_CREATED_AT = "r.createdAt";
 
     @Deprecated
     @GetMapping()
@@ -47,18 +53,26 @@ public class TrackController {
     @GetMapping("/{uuid}")
     @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Track uuid")
     public ResponseEntity<Mono<MusicTrackDto>>
-    findTrackByUuid(@PathVariable String uuid) {
+    findTrackByUuid(@PathVariable String uuid, ServerWebExchange exchange) {
+
+        String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
+        String userUuid = jwtTokenProvider.getUUID(jwtToken);
+
         return ResponseEntity.ok()
-                .body(musicTrackRepository.findMusicTrackByUuid(uuid)
-                        .map(entityMapper::musicTrackToMusicTrackDto));
+                .body(musicTrackRepository.findMusicTrackByUuid(UUID.fromString(uuid))
+                        .map(entityMapper::musicTrackToMusicTrackDto)
+                        .flatMap(bandDto ->
+                                userNeo4jRepository.isLikeRelationExists(String.valueOf(bandDto.getUuid()), userUuid)
+                                        .map(isLiked -> {
+                                            bandDto.setIsLiked(isLiked);
+                                            return bandDto;
+                                        })));
     }
 
     @GetMapping("/find-by-date")
     @Parameter(in = ParameterIn.QUERY, name = "order", schema = @Schema(type = "string", allowableValues = {"asc", "desc"}))
     @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(type = "integer", minimum = "0"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
-    @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
-    // This user-cringe uuid parameter will be deleted after security implementation
     public ResponseEntity<Flux<MusicTrackDto>>
     findTracksByDate(@RequestParam(defaultValue = "0") int page,
                      @RequestParam(defaultValue = "16") int limit,
@@ -68,30 +82,28 @@ public class TrackController {
         String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
         String userUuid = jwtTokenProvider.getUUID(jwtToken);
 
-        Sort sort = Sort.by(Sort.Direction.fromString(order.toLowerCase()), "r.createdAt");
+        Sort sort = Sort.by(Sort.Direction.fromString(order.toLowerCase()), SORT_BY_CREATED_AT);
         Pageable pageable = PageRequest.of(page, limit, sort);
 
         Mono<Long> totalLikedTracks =
                 musicTrackRepository.findTotalLikedTracks(userUuid);
 
-        Flux<MusicTrack> allLikedTracks =
-                musicTrackRepository.findAllLikedTracks(userUuid, pageable);
-
-        return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(totalLikedTracks.block()))
-                .body(allLikedTracks.map(foundTrack -> {
-                    MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
+        Flux<MusicTrackDto> allLikedTracks = musicTrackRepository.findAllLikedTracks(userUuid, pageable)
+                .map(entityMapper::musicTrackToMusicTrackDto)
+                .map(trackDto -> {
                     trackDto.setIsLiked(true);
                     return trackDto;
-                }));
+                });
+
+        return ResponseEntity.ok()
+                .header(X_TOTAL_COUNT_HEADER, String.valueOf(totalLikedTracks.block()))
+                .body(allLikedTracks);
     }
 
     @GetMapping("/find-by-title")
     @Parameter(in = ParameterIn.QUERY, name = "q", schema = @Schema(type = "string", minLength = 1, maxLength = 20))
     @Parameter(in = ParameterIn.QUERY, name = "page", schema = @Schema(type = "integer", minimum = "0"))
     @Parameter(in = ParameterIn.QUERY, name = "limit", schema = @Schema(type = "integer", minimum = "1", maximum = "100"))
-    @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
-    // This user-cringe uuid parameter will be deleted after security implementation
     public ResponseEntity<Flux<MusicTrackDto>>
     findTracksByTitle(@RequestParam(defaultValue = "0") int page,
                       @RequestParam(defaultValue = "16") int limit,
@@ -100,24 +112,27 @@ public class TrackController {
 
         String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
         String userUuid = jwtTokenProvider.getUUID(jwtToken);
+        String queryLowerCase = query.toLowerCase();
 
         Pageable pageable = PageRequest.of(page, limit);
 
         Mono<Long> totalLikedTracksByTitle =
-                musicTrackRepository.findTotalLikedTracksByTitle(query.toLowerCase(), userUuid);
+                musicTrackRepository.findTotalLikedTracksByTitle(queryLowerCase, userUuid);
 
-        Flux<MusicTrack> allLikedTracksByTitle =
-                musicTrackRepository.findAllLikedTracksByTitle(query.toLowerCase(), userUuid, pageable);
-
-        return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(totalLikedTracksByTitle.block()))
-                .body(allLikedTracksByTitle.map(foundTrack -> {
-                    MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
+        Flux<MusicTrackDto> allLikedTracksByTitle = musicTrackRepository.findAllLikedTracksByTitle(queryLowerCase, userUuid, pageable)
+                .map(entityMapper::musicTrackToMusicTrackDto)
+                .map(trackDto -> {
                     trackDto.setIsLiked(true);
                     return trackDto;
-                }));
+                });
+
+        return ResponseEntity.ok()
+                .header(X_TOTAL_COUNT_HEADER, String.valueOf(totalLikedTracksByTitle.block()))
+                .body(allLikedTracksByTitle);
     }
 
+    // Egor: I don't see any sense of this endpoint. If u want to get all tracks in album u can use "/api/v1/library/albums/{uuid}"
+    // in Albums controller. There I returned album, all it's tracks, band.
     @GetMapping("/find-by-album/{uuid}")
     @Operation(description = "Find all tracks of album with uuid.")
     @Parameter(in = ParameterIn.PATH, name = "uuid", description = "Album uuid")
@@ -131,7 +146,7 @@ public class TrackController {
                 musicTrackRepository.findTracksByAlbumUuid(uuid);
 
         return ResponseEntity.ok()
-                .header("X-Total-Count", String.valueOf(totalTracksInAlbum.block()))
+                .header(X_TOTAL_COUNT_HEADER, String.valueOf(totalTracksInAlbum.block()))
                 .body(allTracksInAlbum.map(foundTrack -> {
                     MusicTrackDto trackDto = entityMapper.musicTrackToMusicTrackDto(foundTrack);
                     trackDto.setIsLiked(true);

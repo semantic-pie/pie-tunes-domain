@@ -174,38 +174,7 @@ public interface MusicTrackRepository extends ReactiveNeo4jRepository<MusicTrack
             """)
     Flux<MusicTrack> findTracksByAlbumUuid(String albumUuid);
 
-    @Query("""
-            MATCH (album:Album)-[:CONTAINS]->(musicTrack:Track {uuid: $trackUuid})<-[:HAS_TRACK]-(band:Band)
-            RETURN musicTrack{
-             .bitrate,
-             .lengthInMilliseconds,
-             .releaseYear,
-             .title,
-             .uuid,
-             .version,
-             __nodeLabels__: labels(musicTrack),
-             __elementId__: id(musicTrack),
-             Track_CONTAINS_Album: [album{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 .yearOfRecord,
-                 __nodeLabels__: labels(album),
-                 __elementId__: id(album)
-             }],
-             Track_HAS_TRACK_Band: [band{
-                 .description,
-                 .name,
-                 .uuid,
-                 .version,
-                 __nodeLabels__: labels(band),
-                 __elementId__: id(band)
-             }]
-             }
-            """)
-    Mono<MusicTrack> findMusicTrackByUuid(String trackUuid);
-
+    Mono<MusicTrack> findMusicTrackByUuid(UUID uuid);
 
     @Query("""
             MATCH (album:Album)-[:CONTAINS]->(musicTrack:Track)<-[:HAS_TRACK]-(band:Band)

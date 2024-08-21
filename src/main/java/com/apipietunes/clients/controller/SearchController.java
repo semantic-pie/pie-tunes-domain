@@ -40,15 +40,14 @@ public class SearchController {
 
     @GetMapping("/search")
     @Parameter(in = ParameterIn.QUERY, name = "q", schema = @Schema(type = "string", minLength = 1, maxLength = 20))
-    @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     public Mono<SearchEntityResponse>
     globalSearchItems(@RequestParam(value = "q") String searchQuery, ServerWebExchange exchange) {
 
         String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
         String userUuid = jwtTokenProvider.getUUID(jwtToken);
-        searchQuery = searchQuery.toLowerCase();
+        String queryLowerCase = searchQuery.toLowerCase();
 
-        Flux<MusicTrackDto> musicTrackDto = musicTrackRepository.findAllByTitleContainingIgnoreCase(searchQuery)
+        Flux<MusicTrackDto> musicTrackDto = musicTrackRepository.findAllByTitleContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
                 .map(entityMapper::musicTrackToMusicTrackDto)
                 .flatMap(trackDto ->
@@ -59,7 +58,7 @@ public class SearchController {
                                 })
                 );
 
-        Flux<MusicAlbumDto> musicAlbumDto = musicAlbumRepository.findAllByNameContainingIgnoreCase(searchQuery)
+        Flux<MusicAlbumDto> musicAlbumDto = musicAlbumRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
                 .map(entityMapper::musicAlbumToMusicAlbumDto)
                 .flatMap(albumDto ->
@@ -70,7 +69,7 @@ public class SearchController {
                                 })
                 );
 
-        Flux<MusicBandDto> musicBandDto = musicBandRepository.findAllByNameContainingIgnoreCase(searchQuery)
+        Flux<MusicBandDto> musicBandDto = musicBandRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
                 .map(entityMapper::musicBandToMusicBandDto)
                 .flatMap(bandDto ->
