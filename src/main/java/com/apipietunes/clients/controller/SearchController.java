@@ -1,10 +1,12 @@
 package com.apipietunes.clients.controller;
 
-import com.apipietunes.clients.mapper.DomainEntityMapper;
+import com.apipietunes.clients.mapper.MusicAlbumMapper;
+import com.apipietunes.clients.mapper.MusicBandMapper;
+import com.apipietunes.clients.mapper.MusicTrackMapper;
 import com.apipietunes.clients.model.dto.SearchEntityResponse;
-import com.apipietunes.clients.model.dto.domain.MusicAlbumDto;
-import com.apipietunes.clients.model.dto.domain.MusicBandDto;
-import com.apipietunes.clients.model.dto.domain.MusicTrackDto;
+import com.apipietunes.clients.model.dto.MusicAlbumDto;
+import com.apipietunes.clients.model.dto.MusicBandDto;
+import com.apipietunes.clients.model.dto.MusicTrackDto;
 import com.apipietunes.clients.repository.MusicAlbumRepository;
 import com.apipietunes.clients.repository.MusicBandRepository;
 import com.apipietunes.clients.repository.MusicTrackRepository;
@@ -35,7 +37,10 @@ public class SearchController {
     private final MusicTrackRepository musicTrackRepository;
     private final MusicBandRepository musicBandRepository;
     private final UserNeo4jRepository userNeo4jRepository;
-    private final DomainEntityMapper entityMapper;
+    private final MusicAlbumMapper albumMapper;
+    private final MusicBandMapper bandMapper;
+    private final MusicTrackMapper trackMapper;
+
     private final static int MAX_ENTITIES_COUNT = 4;
 
     @GetMapping("/search")
@@ -49,7 +54,7 @@ public class SearchController {
 
         Flux<MusicTrackDto> musicTrackDto = musicTrackRepository.findAllByTitleContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
-                .map(entityMapper::musicTrackToMusicTrackDto)
+                .map(trackMapper::musicTrackToMusicTrackDto)
                 .flatMap(trackDto ->
                         userNeo4jRepository.isLikeRelationExists(String.valueOf(trackDto.getUuid()), userUuid)
                                 .map(isLiked -> {
@@ -60,7 +65,7 @@ public class SearchController {
 
         Flux<MusicAlbumDto> musicAlbumDto = musicAlbumRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
-                .map(entityMapper::musicAlbumToMusicAlbumDto)
+                .map(albumMapper::musicAlbumToMusicAlbumDto)
                 .flatMap(albumDto ->
                         userNeo4jRepository.isLikeRelationExists(String.valueOf(albumDto.getUuid()), userUuid)
                                 .map(isLiked -> {
@@ -71,7 +76,7 @@ public class SearchController {
 
         Flux<MusicBandDto> musicBandDto = musicBandRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
                 .take(MAX_ENTITIES_COUNT)
-                .map(entityMapper::musicBandToMusicBandDto)
+                .map(bandMapper::musicBandToMusicBandDto)
                 .flatMap(bandDto ->
                         userNeo4jRepository.isLikeRelationExists(String.valueOf(bandDto.getUuid()), userUuid)
                                 .map(isLiked -> {

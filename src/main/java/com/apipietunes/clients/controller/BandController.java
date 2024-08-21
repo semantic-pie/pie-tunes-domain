@@ -1,7 +1,7 @@
 package com.apipietunes.clients.controller;
 
-import com.apipietunes.clients.mapper.DomainEntityMapper;
-import com.apipietunes.clients.model.dto.domain.MusicBandDto;
+import com.apipietunes.clients.mapper.MusicBandMapper;
+import com.apipietunes.clients.model.dto.MusicBandDto;
 import com.apipietunes.clients.repository.MusicBandRepository;
 import com.apipietunes.clients.repository.UserNeo4jRepository;
 import com.apipietunes.clients.service.jwt.JwtTokenProvider;
@@ -31,9 +31,9 @@ import java.util.UUID;
 public class BandController {
 
     private final MusicBandRepository musicBandRepository;
-    private final DomainEntityMapper entityMapper;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserNeo4jRepository userNeo4jRepository;
+    private final MusicBandMapper bandMapper;
 
     private final static String X_TOTAL_COUNT_HEADER = "X-Total-Count";
     private final static String SORT_BY_CREATED_AT = "r.createdAt";
@@ -45,7 +45,7 @@ public class BandController {
 
         Pageable pageable = PageRequest.of(page, limit);
         return musicBandRepository.findAllBands(pageable)
-                .map(entityMapper::outerBandWithoutAlbums);
+                .map(bandMapper::outerBandWithoutAlbums);
     }
 
 
@@ -59,7 +59,7 @@ public class BandController {
 
         return ResponseEntity.ok()
                 .body(musicBandRepository.findMusicBandByUuid(UUID.fromString(uuid))
-                        .map(entityMapper::musicBandToMusicBandDto)
+                        .map(bandMapper::musicBandToMusicBandDto)
                         .flatMap(bandDto ->
                                 userNeo4jRepository.isLikeRelationExists(String.valueOf(bandDto.getUuid()), userUuid)
                                         .map(isLiked -> {
@@ -88,7 +88,7 @@ public class BandController {
                 musicBandRepository.findTotalLikedBands(userUuid);
 
         Flux<MusicBandDto> allLikedBands = musicBandRepository.findAllLikedBands(userUuid, pageable)
-                .map(entityMapper::musicBandToMusicBandDto)
+                .map(bandMapper::musicBandToMusicBandDto)
                 .map(bandDto -> {
                     bandDto.setIsLiked(true);
                     return bandDto;
@@ -119,7 +119,7 @@ public class BandController {
                 musicBandRepository.findTotalLikedBandsByTitle(queryLowerCase, userUuid);
 
         Flux<MusicBandDto> allLikedBandsByTitle = musicBandRepository.findAllLikedBandsByTitle(queryLowerCase, userUuid, pageable)
-                .map(entityMapper::musicBandToMusicBandDto)
+                .map(bandMapper::musicBandToMusicBandDto)
                 .map(bandDto -> {
                     bandDto.setIsLiked(true);
                     return bandDto;

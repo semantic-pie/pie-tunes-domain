@@ -1,10 +1,10 @@
-package com.apipietunes.clients.model.dto.domain;
+package com.apipietunes.clients.model.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import com.apipietunes.clients.model.dto.domain.inner.InnerAlbumDto;
+import com.apipietunes.clients.mapper.util.InnerAlbumDto;
 
 import java.util.Set;
 import java.util.UUID;

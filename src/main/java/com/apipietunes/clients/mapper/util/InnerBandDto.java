@@ -1,4 +1,4 @@
-package com.apipietunes.clients.model.dto.domain.inner;
+package com.apipietunes.clients.mapper.util;
 
 import java.util.UUID;
 
