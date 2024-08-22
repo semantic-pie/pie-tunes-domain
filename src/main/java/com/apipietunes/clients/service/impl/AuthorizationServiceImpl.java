@@ -5,7 +5,7 @@ import com.apipietunes.clients.model.dto.UserSignUpRequest;
 import com.apipietunes.clients.model.entity.UserSql;
 import com.apipietunes.clients.model.enums.UserRole;
 import com.apipietunes.clients.repository.UserH2Repository;
-import com.apipietunes.clients.service.AuthService;
+import com.apipietunes.clients.service.AuthorizationService;
 import com.apipietunes.clients.service.exception.UserAlreadyExistsException;
 import com.apipietunes.clients.service.jwt.JwtTokenProvider;
 
@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @AllArgsConstructor
 @EnableWebFlux
-public class AuthServiceImpl implements AuthService {
+public class AuthorizationServiceImpl implements AuthorizationService {
 
     private final ReactiveAuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;

@@ -1,12 +1,11 @@
-package com.apipietunes.clients.model.dto.domain;
+package com.apipietunes.clients.model.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.neo4j.core.schema.Id;
 
-import com.apipietunes.clients.model.dto.domain.inner.InnerAlbumDto;
-import com.apipietunes.clients.model.dto.domain.inner.InnerBandDto;
+import com.apipietunes.clients.mapper.util.InnerAlbumDto;
+import com.apipietunes.clients.mapper.util.InnerBandDto;
 
 import java.util.UUID;
 
@@ -15,7 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class MusicTrackDto {
 
-    @Id
     private UUID uuid;
 
     private String title;

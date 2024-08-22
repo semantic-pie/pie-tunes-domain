@@ -1,14 +1,14 @@
 package com.apipietunes.clients.controller;
 
+import com.apipietunes.clients.mapper.MusicTrackMapper;
 import io.swagger.v3.oas.annotations.Operation;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 
-import com.apipietunes.clients.mapper.DomainEntityMapper;
 import com.apipietunes.clients.model.dto.TrackLoaderResponse;
-import com.apipietunes.clients.model.dto.domain.MusicTrackDto;
+import com.apipietunes.clients.model.dto.MusicTrackDto;
 import com.apipietunes.clients.service.TrackLoaderService;
 
 import lombok.AllArgsConstructor;
@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 public class TrackLoaderController {
 
     private final TrackLoaderService trackLoaderService;
-    private final DomainEntityMapper domainEntityMapper;
+    private final MusicTrackMapper trackMapper;
 
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(description = "Upload multiple multipart files. (overflow is possible)")
@@ -40,7 +40,7 @@ public class TrackLoaderController {
         return filePartFlux
                 .flatMap(trackLoaderService::save)
                 .map(savedTrack -> {
-                    MusicTrackDto trackDto = domainEntityMapper.outerTrack(savedTrack);
+                    MusicTrackDto trackDto = trackMapper.musicTrackToMusicTrackDto(savedTrack);
                     return new TrackLoaderResponse(trackDto);
                 });
     }

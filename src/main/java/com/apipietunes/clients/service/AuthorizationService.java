@@ -8,7 +8,7 @@ import com.apipietunes.clients.model.entity.UserSql;
 
 import reactor.core.publisher.Mono;
 
-public interface AuthService {
+public interface AuthorizationService {
 
     Mono<UserSql> saveUserSql(UserSignUpRequest creationRequest);
 

@@ -6,10 +6,6 @@ import lombok.Setter;
 
 import java.util.List;
 
-import com.apipietunes.clients.model.dto.domain.MusicAlbumDto;
-import com.apipietunes.clients.model.dto.domain.MusicBandDto;
-import com.apipietunes.clients.model.dto.domain.MusicTrackDto;
-
 @Getter
 @Setter
 @NoArgsConstructor

@@ -1,12 +1,16 @@
 package com.apipietunes.clients.controller;
 
+import com.apipietunes.clients.mapper.MusicAlbumMapper;
+import com.apipietunes.clients.mapper.MusicBandMapper;
+import com.apipietunes.clients.mapper.MusicTrackMapper;
 import com.apipietunes.clients.model.dto.SearchEntityResponse;
-import com.apipietunes.clients.model.dto.domain.MusicAlbumDto;
-import com.apipietunes.clients.model.dto.domain.MusicBandDto;
-import com.apipietunes.clients.model.dto.domain.MusicTrackDto;
-import com.apipietunes.clients.repository.globalsearch.AlbumSearchRepository;
-import com.apipietunes.clients.repository.globalsearch.BandSearchRepository;
-import com.apipietunes.clients.repository.globalsearch.TrackSearchRepository;
+import com.apipietunes.clients.model.dto.MusicAlbumDto;
+import com.apipietunes.clients.model.dto.MusicBandDto;
+import com.apipietunes.clients.model.dto.MusicTrackDto;
+import com.apipietunes.clients.repository.MusicAlbumRepository;
+import com.apipietunes.clients.repository.MusicBandRepository;
+import com.apipietunes.clients.repository.MusicTrackRepository;
+import com.apipietunes.clients.repository.UserNeo4jRepository;
 import com.apipietunes.clients.service.jwt.JwtTokenProvider;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,25 +31,61 @@ import reactor.core.publisher.Mono;
 @RequestMapping(path = "/api/v1")
 public class SearchController {
 
-    private final TrackSearchRepository trackSearchRepository;
-    private final AlbumSearchRepository albumSearchRepository;
-    private final BandSearchRepository bandSearchRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    private final MusicAlbumRepository musicAlbumRepository;
+    private final MusicTrackRepository musicTrackRepository;
+    private final MusicBandRepository musicBandRepository;
+    private final UserNeo4jRepository userNeo4jRepository;
+    private final MusicAlbumMapper albumMapper;
+    private final MusicBandMapper bandMapper;
+    private final MusicTrackMapper trackMapper;
+
+    private final static int MAX_ENTITIES_COUNT = 4;
 
     @GetMapping("/search")
     @Parameter(in = ParameterIn.QUERY, name = "q", schema = @Schema(type = "string", minLength = 1, maxLength = 20))
-    @Parameter(in = ParameterIn.QUERY, name = "userUuid", schema = @Schema(type = "string"))
     public Mono<SearchEntityResponse>
     globalSearchItems(@RequestParam(value = "q") String searchQuery, ServerWebExchange exchange) {
 
         String jwtToken = jwtTokenProvider.getJwtTokenFromRequest(exchange.getRequest());
         String userUuid = jwtTokenProvider.getUUID(jwtToken);
+        String queryLowerCase = searchQuery.toLowerCase();
 
-        Flux<MusicTrackDto> tracks = trackSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase()).take(4);
-        Flux<MusicAlbumDto> albums = albumSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
-        Flux<MusicBandDto> bands = bandSearchRepository.findAllByName(userUuid, searchQuery.toLowerCase());
+        Flux<MusicTrackDto> musicTrackDto = musicTrackRepository.findAllByTitleContainingIgnoreCase(queryLowerCase)
+                .take(MAX_ENTITIES_COUNT)
+                .map(trackMapper::musicTrackToMusicTrackDto)
+                .flatMap(trackDto ->
+                        userNeo4jRepository.isLikeRelationExists(String.valueOf(trackDto.getUuid()), userUuid)
+                                .map(isLiked -> {
+                                    trackDto.setIsLiked(isLiked);
+                                    return trackDto;
+                                })
+                );
 
-        return Mono.zip(tracks.collectList(), albums.collectList(), bands.collectList())
+        Flux<MusicAlbumDto> musicAlbumDto = musicAlbumRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
+                .take(MAX_ENTITIES_COUNT)
+                .map(albumMapper::musicAlbumToMusicAlbumDto)
+                .flatMap(albumDto ->
+                        userNeo4jRepository.isLikeRelationExists(String.valueOf(albumDto.getUuid()), userUuid)
+                                .map(isLiked -> {
+                                    albumDto.setIsLiked(isLiked);
+                                    return albumDto;
+                                })
+                );
+
+        Flux<MusicBandDto> musicBandDto = musicBandRepository.findAllByNameContainingIgnoreCase(queryLowerCase)
+                .take(MAX_ENTITIES_COUNT)
+                .map(bandMapper::musicBandToMusicBandDto)
+                .flatMap(bandDto ->
+                        userNeo4jRepository.isLikeRelationExists(String.valueOf(bandDto.getUuid()), userUuid)
+                                .map(isLiked -> {
+                                    bandDto.setIsLiked(isLiked);
+                                    return bandDto;
+                                })
+                );
+
+        return Mono.zip(musicTrackDto.collectList(), musicAlbumDto.collectList(), musicBandDto.collectList())
                 .map(tuple -> {
                     SearchEntityResponse searchEntityResponse = new SearchEntityResponse();
                     searchEntityResponse.setTracks(tuple.getT1());

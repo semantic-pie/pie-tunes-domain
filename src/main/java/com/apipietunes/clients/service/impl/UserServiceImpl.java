@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
         return userNeo4jRepository.isLikeRelationExists(entityUuid, userUuid)
                 .flatMap(isLikeExists -> {
                     if (!isLikeExists) {
-                        return userNeo4jRepository.likeExistingTrack(entityUuid, userUuid)
+                        return userNeo4jRepository.likeExistingEntity(entityUuid, userUuid)
                                 .then();
                     } else {
                         String errorMessage = String.format("User already 'LIKES' entity '%s'", entityUuid);
